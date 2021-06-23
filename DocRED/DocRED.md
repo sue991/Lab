@@ -2,7 +2,7 @@
 
 ## Abstract
 
- 문서 내 multi entities는 일반적으로 복잡한 상호작용 관계를 나타내며, single entity pairs를 위해 일반적으로 intra-sentence relations에 초점을 맞춘 existing relation extraction(RE) 방법에 의해 잘 처리될 수 없다. document-level RE에 대한 연구를 가속화하기 위해, 우리는 위키피디아와 위키데이터에서 생성된 새로운 데이터 세트인 **DocRED**를 소개합니다. 이 DocRED는 세가지 특징이 있는데, 
+ 문서 내 multi entities는 일반적으로 inter-sentence relations를 나타내며, single entity pairs를 위해 일반적으로 intra-sentence relations에 초점을 맞춘 existing relation extraction(RE) 방법에 의해 잘 처리될 수 없다. document-level RE에 대한 연구를 가속화하기 위해, 우리는 위키피디아와 위키데이터에서 생성된 새로운 데이터 세트인 **DocRED**를 소개합니다. 이 DocRED는 세가지 특징이 있는데, 
 
 1. DocRED는 named entities와 relations 모두를 annotate하며, plain text에서 document-level RE를 위한 가장 큰 human-annotated dataset이다.
 
@@ -19,7 +19,7 @@ relation extraction(RE)의 과제는 large-scale knowledge graph construction에
 
  이런 성공적인 노력에도 불구하고, sentence-level RE는 실무에서 피할 수 없는 제약을 겪는데, 그것은 많은 relational facts가 multiple sentences에 나타나는 것이다. Figure 1을 예로 들면, 문서에는 multiple entities가 언급되어 있으며 복잡한 interactions를 나타낸다. relational fact(*Riddarhuset*, country, *Sweden*)를 확인하기 위해서, 먼저 문장 4에서 *Riddarhuset*이 *Stockholm*에 위치해 있다는 사실을 확인한 후, 문장 1로부터 *Stockholm*이 *Sweden*의 수도이고 *Sweden*이  country라는 사실을 확인하고, 마지막으로 이 facts로부터 Riddarhuset의 주권국가(sovereign state)가 *Sweden*이라는 사실을 추론해야 한다.  이 프로세스는 문서의  multiple sentences에 대한 읽기 및 추론을 필요로 하며, 이는 직관적으로 sentence-level RE methods의 범위를 벗어난다. 위키피디아 문서로부터 샘플링된 human-annotated corpus에 대한 통계에 따르면, 최소 40.7%의 relational facts가 multiple sentences로부터 추출될 수 있으며, 이는 무시할 수 없다. Swampillai and Stevenson (2010)과 Verga et al. (2018)도 유사한 관측 결과를 보고했다. 따라서 RE를 sentence level에서 document level으로 이동할 필요가 있다. 
 
- Document-level RE에서의 연구는 training과 evaluation에서 large-scale annotated dataset을 필요로 했다. 현재 document-level RE에서 dataset은 많지 않다.  Quirk and Poon (2017)과 Peng et al. (2017)은 human annotation 없이 두 개의 distantly supervised datasets을 구축하여 평가의 신뢰성이 떨어질 수 있다. BC5CDR(Li et al., 2016)은 1,500개의 PubMed 문서로 구성된 human- annotated document-level RE dataset이며, 이는 "화학 유발 질병" 관계만을 고려한 생약의 특정 영역에 있으므로 문서 수준 RE에 대한 범용 방법을 개발하는 데 적합하지 않다. Levy et al. (2017)은  reading comprehension 방법을 사용하여 질문에 답함으로써 문서에서 relational facts을 추출하며, 여기서 질문은 entity-relation 쌍에서 변환된다. 본 연구에서 제안된 데이터 세트는 특정 접근 방식에 따라 맞춤화되므로, document-level RE에 대한 다른 잠재적 접근 방식에도 적합하지 않다. 요약하면, document-level RE에 대한 기존 데이터 세트는 manually-annotated relations와 entities의 수가 적거나, distant supervision에서 noisy annotations을 보여주거나, 특정 도메인 또는 접근 방식을 제공한다.
+ Document-level RE에서의 연구는 training과 evaluation에서 large-scale annotated dataset을 필요로 했다. 현재 document-level RE에서 dataset은 많지 않다.  Quirk and Poon (2017)과 Peng et al. (2017)은 human annotation 없이 두 개의 distantly supervised datasets을 구축하여 평가의 신뢰성이 떨어질 수 있다. BC5CDR(Li et al., 2016)은 1,500개의 PubMed 문서로 구성된 human-annotated document-level RE dataset이며, 이는 "화학 유발 질병" 관계만을 고려한 생약의 특정 영역에 있으므로 문서 수준 RE에 대한 범용 방법을 개발하는 데 적합하지 않다. Levy et al. (2017)은  reading comprehension 방법을 사용하여 질문에 답함으로써 문서에서 relational facts을 추출하며, 여기서 질문은 entity-relation 쌍에서 변환된다. 본 연구에서 제안된 데이터 세트는 특정 접근 방식에 따라 맞춤화되므로, document-level RE에 대한 다른 잠재적 접근 방식에도 적합하지 않다. 요약하면, document-level RE에 대한 기존 데이터 세트는 manually-annotated relations와 entities의 수가 적거나, distant supervision에서 noisy annotations을 보여주거나, 특정 도메인 또는 접근 방식을 제공한다. document-lebel RE에 대한 연구를 가속화하기 위해, large-scale, manually-annotated, 그리고 general-purpose document-level RE dataset이 시급하다.
 
  이 논문에서, 우리는 위키백과와 위키데이터로 구성된 large-scale human-annotated document-level RE dataset인 DocRED를 제시한다. DocRED는 다음 세 가지 특징으로 구성된다.
 
