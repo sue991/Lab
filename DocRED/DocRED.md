@@ -21,6 +21,8 @@ relation extraction(RE)의 과제는 large-scale knowledge graph construction에
 
  Document-level RE에서의 연구는 training과 evaluation에서 large-scale annotated dataset을 필요로 했다. 현재 document-level RE에서 dataset은 많지 않다.  Quirk and Poon (2017)과 Peng et al. (2017)은 human annotation 없이 두 개의 distantly supervised datasets을 구축하여 평가의 신뢰성이 떨어질 수 있다. BC5CDR(Li et al., 2016)은 1,500개의 PubMed 문서로 구성된 human-annotated document-level RE dataset이며, 이는 "화학 유발 질병" 관계만을 고려한 생약의 특정 영역에 있으므로 문서 수준 RE에 대한 범용 방법을 개발하는 데 적합하지 않다. Levy et al. (2017)은  reading comprehension 방법을 사용하여 질문에 답함으로써 문서에서 relational facts을 추출하며, 여기서 질문은 entity-relation 쌍에서 변환된다. 본 연구에서 제안된 데이터 세트는 특정 접근 방식에 따라 맞춤화되므로, document-level RE에 대한 다른 잠재적 접근 방식에도 적합하지 않다. 요약하면, document-level RE에 대한 기존 데이터 세트는 manually-annotated relations와 entities의 수가 적거나, distant supervision에서 noisy annotations을 보여주거나, 특정 도메인 또는 접근 방식을 제공한다. document-lebel RE에 대한 연구를 가속화하기 위해, large-scale, manually-annotated, 그리고 general-purpose document-level RE dataset이 시급하다.
 
+
+
  이 논문에서, 우리는 위키백과와 위키데이터로 구성된 large-scale human-annotated document-level RE dataset인 DocRED를 제시한다. DocRED는 다음 세 가지 특징으로 구성된다.
 
 1. DocRED는 5,053개의 위키백과 문서에 annotated된 132,375개의 entities와 56,354개의 relational facts을 포함하고 있어 human-annotated document-level RE dataset 중 가장 크다.
@@ -72,7 +74,7 @@ Human annotation을 위한 documents를 선택하기 위해, 우리는 distant s
 
 ### 2.2 Distantly Supervised Data Collection 
 
-Human-annotated data 외에도, 우리는 weakly supervised RE scenarios를 촉진하기 위해 large-scale distantly supervised data를 수집한다. 우리는 106,926개의 documents에서 5,053개의 human-annotated documents를 제거하고, 나머지 101,873개의 documents를  distantly supervised data의 corpus로 사용한다. Distantly supervised data와 human-annotated data가 동일한 entity distribution을 공유하도록 하기 위해, named entity mentions은 2.1 Section에서 수집된 human-annotated data에 미세 조정되고 90.5% F1 score를 달성하는 Transformers의 Bidirectional Encoder Representations(BERT) (Devlin et al., 2019)을 사용하여 다시 식별된다. 우리는 target Wikidata item의 빈도 및 현재 문서와의 관련성을 공동으로 고려하는 heuristic-based method으로 각 named entity mention를 하나의 Wikidata item에 연결한다. 그런 다음 명named entity mentions을 동일한 KB IDs와 병합합니다. 마지막으로, 각 병합된 엔티티 쌍 간의 relations는 distant supervision을 통해 레이블링된다.
+Human-annotated data 외에도, 우리는 weakly supervised RE scenarios를 촉진하기 위해 large-scale distantly supervised data를 수집한다. 우리는 106,926개의 documents에서 5,053개의 human-annotated documents를 제거하고, 나머지 101,873개의 documents를  distantly supervised data의 corpus로 사용한다. Distantly supervised data와 human-annotated data가 동일한 entity distribution을 공유하도록 하기 위해, named entity mentions은 2.1 Section에서 수집된 human-annotated data에 미세 조정되고 90.5% F1 score를 달성하는 Bidirectional Encoder Representations from Transformers(BERT)  (Devlin et al., 2019)을 사용하여 다시 식별된다. 우리는 target Wikidata item의 빈도 및 현재 문서와의 관련성을 공동으로 고려하는 heuristic-based method으로 각 named entity mention를 하나의 Wikidata item에 연결한다. 그런 다음 named entity mentions을 동일한 KB IDs와 병합합니다. 마지막으로, 각 병합된 엔티티 쌍 간의 relations는 distant supervision을 통해 레이블링된다.
 
 ## 3. Data Analysis
 
@@ -88,15 +90,15 @@ Human-annotated data 외에도, 우리는 weakly supervised RE scenarios를 촉�
 
 **![Screen Shot 2021-06-21 at 4.22.35 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-21 at 4.22.35 PM.png)**
 
-**Reasoning Types.** 3,820개의 관계 인스턴스를 포함하는 dev 및 test 세트에서 무작위로 300개의 문서를 샘플링하고 이러한 관계를 추출하는 데 필요한  reasoning types을 수동으로 분석하였다. Table 2는 데이터 세트의 주요 reasoning types에 대한 통계를 보여준다. reasoning types에 대한 통계에서 우리는 다음과 같은 관측치를 가지고 있다.
+**Reasoning Types.** 3,820개의 관계 인스턴스를 포함하는 dev 및 test 세트에서 무작위로 300개의 문서를 샘플링하고 이러한 관계를 추출하는 데 필요한 reasoning types을 수동으로 분석하였다. Table 2는 데이터 세트의 주요 reasoning types에 대한 통계를 보여준다. reasoning types에 대한 통계에서 우리는 다음과 같은 관측치를 가지고 있다.
 
 1. 대부분의 relation instances(61.1%)는 추론을 식별해야 하며, 간단한 패턴 인식을 통해 38.9%의 관계 인스턴스만 추출할 수 있어 문서 수준 RE에 reasoning이 필수적이라는 것을 알 수 있다.
 2. 추론과 관련된 경우, majority(26.6%)는 논리적 추론을 필요로 하는데, 여기서 문제의 두 entities 사이의 관계는 bridge entity에 의해 간접적으로 설정된다. Logical reasoning은 RE 시스템이 여러 엔티티 간의 상호작용을 모델링할 수 있어야 한다.
 3. 유의한 수의 relation instances(17.6%)는 coreference reasoning을 필요로 하는데, 여기서 coreference resolution은 풍부한 맥락(rich context)에서 대상 엔터티를 식별하기 위해 먼저 수행되어야 한다.
 
-4. 유사한 비율의 elation instances(16.6%)는 상식적 추론(common-sense reasoning)을 기반으로 식별되어야 하며, 여기서 독자는 relation identification을 완료하기 위해 문서의 relational facts과 common-sense(상식)을 결합해야 한다.
+4. 유사한 비율의 relation instances(16.6%)는 상식적 추론(common-sense reasoning)을 기반으로 식별되어야 하며, 여기서 독자는 relation identification을 완료하기 위해 문서의 relational facts과 common-sense(상식)을 결합해야 한다.
 
-**Inter-Sentence Relation Instances.**  각 relation instance는 평균 1.6개의 supporting sentences과 연관되어 있으며, 46.4%의 relation instances가 하나 이상의 supporting sentences과 연결되어 있음을 발견했다. 게다가 상세 분석 결과, 40.7%의 relational facts은 여러 문장으로부만 추출할 수 있어 DocRED가 document-level RE에 대한 좋은 벤치마크임을 알 수 있다. 우리는 또한 multiple sentence에 대한 읽기, 합성 및 추론 능력이 document-level RE에 필수적이라는 결론을 내릴 수 있다.
+**Inter-Sentence Relation Instances.**  각 relation instance는 평균 1.6개의 supporting sentences과 연관되어 있으며, 46.4%의 relation instances가 하나 이상의 supporting sentences과 연결되어 있음을 발견했다. 게다가 상세 분석 결과, 40.7%의 relational facts은 여러 문장으로부터만 추출할 수 있어 DocRED가 document-level RE에 대한 좋은 벤치마크임을 알 수 있다. 우리는 또한 multiple sentence에 대한 읽기, 합성 및 추론 능력이 document-level RE에 필수적이라는 결론을 내릴 수 있다.
 
 ![Screen Shot 2021-06-21 at 4.34.00 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-21 at 4.34.00 PM.png)
 
@@ -118,9 +120,9 @@ Human-annotated data 외에도, 우리는 weakly supervised RE scenarios를 촉�
 
  DocRED의 과제를 평가하기 위해 데이터 세트에서 최첨단 RE 시스템을 평가하기 위한 포괄적인 실험을 수행한다. 구체적으로, 우리는 supervised와 weakly supervised benchmark settings 모두에서 실험을 수행한다. 또한 우리는 human performance를 평가하고 다양한 supporting evidence types에 대한 성능을 분석한다. 또한 다양한 기능의 기여도를 조사하기 위해 ablation study(???)를 수행한다. 자세한 분석을 통해 문서 수준 RE에 대한 몇 가지 향후 방향에 대해 논의한다. 자세한 분석을 통해 문서 수준 RE에 대한 몇 가지 향후 방향에 대해 논의한다.
 
-**Models.**  우리는 4개의 최신 RE model을 document-level RE scenario에 적용시키는데, 각각 CNN (Zeng et al., 2014) 기반 모델, LSTM (Hochreiter and Schmidhuber, 1997)기반 모델, bidirectional LSTM (BiLSTM) (Cai et al., 2016)기반 모델, 그리고 원래  contextual relation를 활용하여 intra-sentence RE를 개선하도록 설계된 Context-Aware 모델(Sorokin and Gurevych, 2017) 이 있다. 처음 세 가지 모델은 문서 인코딩에 사용되는 인코더에서만 다르며 이 섹션의 나머지 부분에서 자세히 설명될 것이다. 공간 제한에 대한 Context-Aware model의 세부 정보는 original paper를 보도록 한다.
+**Models.**  우리는 4개의 최신 RE model을 document-level RE scenario에 적용시키는데, 각각 CNN (Zeng et al., 2014) 기반 모델, LSTM (Hochreiter and Schmidhuber, 1997)기반 모델, bidirectional LSTM (BiLSTM) (Cai et al., 2016)기반 모델, 그리고 원래 contextual relation를 활용하여 intra-sentence RE를 개선하도록 설계된 Context-Aware 모델(Sorokin and Gurevych, 2017) 이 있다. 처음 세 가지 모델은 문서 인코딩에 사용되는 인코더에서만 다르며 이 섹션의 나머지 부분에서 자세히 설명될 것이다. 공간 제한에 대한 Context-Aware model의 세부 정보는 original paper를 보도록 한다.
 
- CNN/LSTM/BiLSTM 기반 모델은 먼저 CNN/LSTM/BiLSTM를 인코더로 사용하면서, n개의 어로 구성된 document D를 hidden state vector sequence h_i로 인코딩한 다음, 
+ CNN/LSTM/BiLSTM 기반 모델은 먼저 하면서, n개의 단어로 구성된 document D를 hidden state vector sequence h_i로 인코딩한 다음, 
 $$
 D = \{w_i\}^n_{i=1} \\
 \{h_i\}^n_{i=1} \mbox{  : hidden state vector sequence }
@@ -146,7 +148,7 @@ $$
 $$
 [·; ·] : \mbox{concatenation} \\ 
  d_{ij}, d_{ji} : \mbox{문서에 포함된 두 entity에 대한 첫 번째 mentions의 relative distances} \\
-E : \mbox{embedding matrix  ;  }  R : \mbox{relation type} \\
+E : \mbox{embedding matrix  ;  }  r : \mbox{relation type} \\
 W_r , b_r : \mbox{ relation type에 따른 trainable parameters}
 $$
 
@@ -157,7 +159,7 @@ $$
 **Model Performance.**  Table 4는  supervised와 weakly supervised settings에서 다음과 같은 실험 결과를 보여준다.
 
 1. human-annotated data로 훈련된 모델은 일반적으로 distantly supervised data에 대해 훈련된 모델보다 성능이 우수하다. 이는 distant supervision을 통해 large-scale distantly supervised data를 쉽게 얻을 수 있지만 wrong-labeling problem은 RE 시스템의 성능을 해칠 수 있기 때문에 weakly supervised setting을 더 어려운 시나리오로 만들기 때문이다.
-2. 흥미로운 예외는 distantly supervised data에 대해 훈련된 LSTM, BiLSTM 및 Context-Aware은 human-annotated data에 대해 훈련된 것과 유사한 F1 점수를 달성하지만 다른 metrics에서는 훨씬 낮은 점수를 달성한다는 것으로, 훈련과 개발/테스트 세트 사이의 중복된 엔티티 쌍이 실제로 evaluation biases을 일으킨다는 것을 나타낸다. 따라서 Ign F1과 Ign AUC를 보고하는 것이 필수적이다.
+2. 흥미로운 예외는 LSTM, BiLSTM 및 Context-Aware은 human-annotated data에 대해 훈련된 것과 유사한 F1 점수를 달성하지만 다른 metrics에서는 훨씬 낮은 점수를 달성한다는 것으로, 훈련과 개발/테스트 세트 사이의 중복된 엔티티 쌍이 실제로 evaluation biases을 일으킨다는 것을 나타낸다. 따라서 Ign F1과 Ign AUC를 보고하는 것이 필수적이다.
 3. 풍부한 contextual information를 활용하는 모델은 일반적으로 더 나은 성능을 달성한다. LSTM과 BiL-STM은 CNN보다 성능이 뛰어나 문서 수준 RE에서 long-dependency semantics 모델링의 효과를 나타낸다. Context-Aware는 경쟁력 있는 성능을 달성하지만 다른 neural models를 크게 능가할 수는 없다. 이는 문서 수준 RE에서 multiple relations의 연관성을 고려하는 것이 유익하지만, 현재 모델은 inter-relation information를 잘 활용할 수 없다는 것을 나타낸다.
 
 **![Screen Shot 2021-06-22 at 12.17.27 AM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-22 at 12.17.27 AM.png)**
