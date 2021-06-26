@@ -187,3 +187,4 @@ PE : positional encoding
 pos : 각 단어의 번호		i : 각 단어에 대한 임베딩 값의 위치
 
 ![Screen Shot 2021-06-25 at 5.49.07 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-25 at 5.49.07 PM.png)
+
