@@ -81,4 +81,116 @@ BERT_BASE는 purpose를 비교하기 위해 OpenAI GPT와 같은 model size를 �
 
 ​	Question Answering(QA), Natural Language Inference (NLI)와 같은 많은 중요한  다운스트림 tasks는 language modeling에 의해 직접적으로 포착되지 않는 두 문장들 간의 *relationship*을 이해하는데 기반을 둔다. sentence relationship을 이해하는 모델을 훈련하기 위해, 우리는 monolingual corpus에서 하찮게 생성될 수 있는 이진화된 *next sentence prediction* task를 위해 pre-train한다. 구체적으로 각 pre-training 예시에 대해 문장 A와 B를 선택할 때, 시간의 50%는 A(labeled as `IsNext`)뒤에 오는 실제 next sentence이고, 50%는 corpus(labeled as `NotNext`)의 random sentence이다. Figure 1 에서 보는 것 처럼, `C`는 next sentence prediction(NSP)에 사용된다.   단순함에도 불구하고, 우리는 Section 5.1에서 이 task를 위한 pre-training이 QA와 NLI모두에서 매우 유용하다는 것을 보여준다. NSP 과제는 저나이트 외 연구진(2017년), 로그스워란 및 리(2018년)에 사용된 대표 학습 목표와 밀접한 관련이 있다. 그러나 이전 연구에서 오직 sentence embeddings만 down-stream task로 전송되고 ,  BERT는 모든 매개변수를 전송하여 최종 model parameters를 초기화한다.
 
-**Pre-training data**  pre-training 절차는 language model pre-training에서 기존 문헌을 따른다. 
+**Pre-training data**  pre-training 절차는 language model pre-training에서 기존 문헌을 따른다.  pre-training corpus의 경우 BooksCorpus (800M words) 와 English Wikipedia(2,500M words)를 사용한다. 위키피디아의 경우 오직 text 구절만 추출하고 list, table, headers는 무시한다.  Long contiguous sequences를 추출하기 위해 Billion Word Benchmark와 같은 셔플된 sentence-lavel corpus보다는 document-level corpus를 사용하는 것이 중요하다. 
+
+### 3.2 Fine-tuning BERT
+
+​	트랜스포머의 self-attention mechanism은 BERT가 single text혹은 text pairs를 포함하든 간에 적절한 인풋 아웃풋을 바꿈으로서 많은 다운스트림 task를 모델링할 수 있또록 하기 때문에 fine-tuning은 간단하다. Text pairs를 포함하는 어플리케이션의 경우, 공동 패턴은  Parikh et al. (2016); Seo et al. (2017)과 같이 bidirectional cross attention을 적용하기 전에 텍스트 쌍을 독립적으로 인코딩 하는 것이다. 대신 BERT는 두 단계를 통합하기 위해 self-attention mechanism을 사용한다. self-attention을 갖고 concatenated된 text pair을 인코딩하면 두 문장 사이에 *bidirectional* cross attention이 포함되기 때문이다. 각 task에서 간단히 task별 inputs과 outputs를 BERT에 연결하고 모든 parameters를 종단 간 fine-tune한다. Input에서 pre-training의 문장 A와 문장 B는 (1) paraphrasing의 sentence pairs, (2) 수반되는  hypothesis-premise pairs, (3) question answering에서 question-passage pairs, (4) text classificatino 또는 sequence tagging에서 악화된(degenerate) text-∅ pair와 유사하다. Output에서는, token representation은 sequence tagging이나 question answering과 같은 token-level tasks를 위한 output layer로 공급되고, `[CLS]` representation은 entailment또는 sentiment analysis과 같은 classification을 위한 output layer로 공급된다.
+
+  Pre-training과 비교해서, fine-tuning은 상대적으로 저렴하다. 논문의 모든 결과는 동일한  pre-trained model에서 시작하여 많아봤자 1시간의 단일 클라우드 TPU, 몇 시간의 GPU에서 복제할 수 있다. 섹션 4의 해당 하위 섹션에서 task별 세부 사항을 설명한다. 더 자세한 내용은 A.5.에서 확인할 수 있다.
+
+## 4. Experiments
+
+여기서 우리는 11NLP tasks에서의 BERT fine-tuning 결과를 보여준다.
+
+### 4.1 GLUE
+
+  General Language Understanding Evaluation (GLUE) benchmark는 다양한  natural language understanding tasks의 모음이다. GLUE datasets의 자세한 설명은 B.1을 봐라.
+
+  GLUE를 fine-tune하기 위해, Section 3에 설명한대로 input sequence (single sentence or sentence pairs를 위한)를 나타내고, 첫번째 인풋 토큰(`[CLS]`)에 해당하는 final hidden vector C ∈ R^H를 aggregate representation으로 사용한다. Fine-tuning동안 도입된 새로운 파라미터는 classification layer weights W ∈ R^{KxH}인데, 이때 K는 # of labels이다. 우리는 C,W로 standard classification loss를 계산한다.
+$$
+log(softmax(CW^T))
+$$
+  32의 batch size를 사용하며 모든 GLUE tasks에 대해 3 epoch동안 fine-tune 한다. 각 task에 대해, Dev set에서 가장 fine-tuning 된 learning rate(5e-5, 4e-5, 3e-5, and 2e-5)를 선택했다. 추가적으로  BERT_LARGE 를 위해 fine- tuning이 때때로 small datasets에서 불안정하다는 것을 발견했고, 몇번 무작위로 재시작하고 Dev set에서 best model을 선택했다. Random restarts에서는 동일한 pre-trained checkpoint를 사용하지만 fine-tuning data shuffling과 classifier layer initialization을 다르게 수행한다.
+
+![Screen Shot 2021-06-28 at 5.38.14 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-28 at 5.38.14 PM.png)  
+
+결과는 Table 1처럼 보여진다. BERT_BASE와 BERT_LARGE 모두 이전 기술보다 각각 평균 정확도가 4.5%, 7.0% 향상되어 모든 작업에서 모든 시스템을 상당한 차이로 능가한다. BERT_BASE와 OpenAI GPT는 attention masking과 별개로 거의 모델 아키텍쳐 부분에서 거의 동일하다는 것을 주목하자. 가장 크고 가장 널리 보고되는 GLUE task인 MNLI, BERT는 절대 정확도가 4.6% 향상되었다. 공식 GLUE leaderboard에서, BERT_LARGE는 72.8점을 획득한 OpenAI GPT와 비교해서 80.5 score를 얻었다(작성일 기준).
+
+  BERT_LARGE는 모든 작업, 특히 training data가 거의 없는 작업에서 BERT_BASE를 크게 능가한다. 모델 사이즈의 효과는 섹션 5.2에서 더 자세히 다뤄진다.
+
+### 4.2 SQuAD v1.1
+
+  The Stanford Question Answering Dataset (SQuAD v1.1)은 10만 개의 crowd- sourced question/answer pairs를 모은 것이다. 정답을 포함하는 위키피디아의 문구와 구절이 주어졌을때,  과제는 해당 구절의 정답 텍스트 범위를 예측하는 것이다.  Figure 1에서 보는것 처럼, question answering task에서, input question과 passage를 A embedding을 사용한 question과 B embedding을 사용한 passage와 함께 single packed sequence로 표현한다. 우리는 fine-tuning동안 오직 start vector S ∈ R^H와 end vector E ∈ R^H를 도입한다. 단어 i가 answer span의 start일 확률은 paragraph에 있는 모든 단에 대한 softmax에 이어 T_i와 S의 dot product로 계산된다.
+$$
+P_i = \frac{e^{S·T_i}}{\sum_je^{S·T_j}}
+$$
+유사한 공식이 answer span 끝에 사용된다. 위치 i,j에 대한  candidate span의 점수는  S ·Ti + S ·Tj로 정의되고, j >= i인 최대 scoring span은 prediction으로 사용된다. Training objective는 정확한 start와 end position의 log-likelihoods의 합이다. 우리는 5e-5의 lr, 32 batch size로 3 epoch동안 fine-tune한다.
+
+![Screen Shot 2021-06-28 at 6.27.46 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-28 at 6.27.46 PM.png)
+
+  Table 2는 최상위 리더보드 항목과 상위 게시된 시스템의 결과를 보여준다. SQuAD 리더보드의 상위 결과에는 public system descriptions available이 없으며 시스템 교육 시 공개 데이터를 사용할 수 있습니다. 그러므로 SQuAD를 fine-tuning 하기 전에 먼저 TriviaQA를 fine-tuning하여 우리의 시스템에서 보통의 data augmentation을 사용한다. 
+
+ 최고 성능 시스템은 앙상블 시 최고 리더보드 시스템보다 +1.5F1 그리고 단일 시스템으로는 +1.3F1만큼 성능이 뛰어나다. 사실, 당사의 단일 BERT 모델은 F1 score 면에서 상위 앙상블 시스템을 능가한다. TriviaQA fine-tuning data없이, 오직 0.1-0.4 F1만 읽고, 여전히 모든 존재하는 시스템보다 훨씬 능가한다.
+
+### 4.3 SQuAD v2.0
+
+  SQuAD 2.0 작업은 제공된 단락에 짧은 답이 존재하지 않을 수 있도록 하여 SQuAD 1.1 문제 정의를 확장하여 문제를 보다 현실적으로 만든다. 
+
+ 이 작업을 위해 간단한 접근 방식을 사용하여 SQuAD v1.1 BERT 모델을 확장한다. 우리는 답이 없는 질문은 `[CLS]` 토큰에서 시작과 종료 사이에 답이 있는 것으로 취급한다. 시작 및 끝 응답 범위 위치의 확률 공간은 `[CLS]` 토큰의 위치를 포함하도록 확장된다. 예측을 위해 no-answer span의 점수(s_null = S·C + E·C)를 best non-null span와 비교한다.
+$$
+\hat s_{i,j} = max_{j>=i} S·T + E·T_j  \mbox{  : best non-null span}
+$$
+
+
+ F1을 최대화하기 위한 threshold  τ가 dev set에서 선택되고, 
+$$
+\hat s_{i,j} > s_{null} + τ
+$$
+
+
+일 때 non-null answer를 예측한다. 우리는 이 모델에서 TriviaQA data를 사용하지 않는다. 우리는 lr 5e-5, batch size of 48에서 2 epoch동안 fine-tune 한다.
+
+![Screen Shot 2021-06-28 at 6.44.32 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-28 at 6.44.32 PM.png)
+
+이전의 leaderboard entries와 top published work와 비교한 결과는 Table 3에서 보여주는데, BERT를 하나의 구성요소로 사용하는 시스템은 제외한다. 이전의 최고 시스템 대비 +5.1 F1이 개선되었다. 
+
+### 4.4 SWAG
+
+  The Situations With Adversarial Generations (SWAG) dataset 기초적인 상식 추론을 평가하는 113k 문장 쌍 완성 예가 포함되어 있다. 주어진 문장에서 과제는 네 가지 선택 중에서 가장 그럴듯한 연속성을 선택하는 것이다.
+
+   SWAG dataset에서 fine-tuning할 때, 우리는 주어진 문장(문장 A)과 가능한 연속(문장 B)의 연결을 각각 포함하는 4개의 입력 시퀀스를 구성한다. 도입된 유일한 작업별 매개변수는 [CLS] 토큰 표현 C를 가진 도트곱이 소프트맥스 계층으로 정규화된 각 선택에 대한 점수를 나타내는 벡터이다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-28 at 7.19.49 PM.png" alt="Screen Shot 2021-06-28 at 7.19.49 PM" style="zoom:50%;" />
+
+우리는 모델을  lr 2e-5, batch size 16으로 3 epoch동안 fine-tune한다. 결과는 Table 4에 보여진다. BERT_LARGE는 저자의 기본 ESIM+ELMo 시스템보다 27.1%, OpenAI GPT 보다 8.3% 능가하는 성능을 보였다.
+
+## Ablation Studies
+
+  이 섹션에서, 우리는 상대적인 중요성을 더 잘 이해하기 위해 BERT의 여러 측면에 대해 ablation experiments를 수행한다. 추가적인 ablation studies가 부록 C에서 보여진다.
+
+### 5.1 Effect of Pre-training Tasks
+
+ BERT_BASE와 정확히 동일한 pre-training 데이터, 미세 조정 체계 및 하이퍼 매개변수를 사용하여 두 가지 사전 교육 목표를 평가함으로써 BERT의 심층적인 양방향성이 얼마나 중요한지 보여준다. 
+
+**NO NSP** : "masked ML"(MLM)을 사용하여 훈련되지만 "next sentence prediction(NSP)" task가 없는 bidirectional model.
+
+**LTR & No NSP** : MLM이 아닌 표준 Left-to-Right(LTR)을 사용하여 훈련하는 left-context-only model. Left-only constraint가 fine-tuning에 적용되는데, 제거하면 다운스트림 성능이 저하되는  pre-train/fine-tune 불일치가 발생했기 때문이다. 게다가 이 모델은  NSP task없이 pre-trained되었다. 이것은 더 큰 training dataset, 우리의 input representation, 우리의 fine-tuning scheme 를 사용하면 직접적으로 OpenAI GPT와 비교가능하다. 
+
+![Screen Shot 2021-06-28 at 7.32.50 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-28 at 7.32.50 PM.png)
+
+ 우리는 먼저 NSP task의 영향을 실험한다. Table 5에서, NSP를 없애는 것은 QNLI, MNLI, and SQuAD 1.1 성능에 상당한 저하를 준다. 다음, 우리는 "No NSP" , "LTR & No NSP"를 비교하여 birirectional representations training의 영향을 평가한다. LTR 모델은 모든 작업에서 MLM 모델보다 성능이 떨어지며 MRPC 및 SQuAD가 크게 저하된다. SQuAD의 경우  token-level hidden states는 right-side context가 없기 때문에 LTR 모델이 토큰 예측에서 성능이 저하된다는 것이 직관적으로 분명하다. LTR 시스템 강화를 위해 무작위로 초기화 된 BiLSTM을 상단에 추가했다. 이것은 SQuAD의 결과를 상당히 향상시켰지만, 결과는 여전히 pre-trained bidirectional models보다 낮다. BiLSTM은 GLUE task의 성능을 저하시킨다. 우리는 또한 개별 LTR과 RTL 모델을 훈련시키는 것이 가능할 것이며, ELMo가 하는 것처럼 각각의 토큰을 두 모델의 연결로 나타낼 수 있음을 인정한다. 그러나, (a) 이는 단일 양방향 모델보다 2배 더 비싸다. (2) 이는 QA와 같은 과제에서는 직관적이지 않다. RTL 모델은 질문에 대한 답을 조건화할 수 없기 때문이다. 이는 모든 계층에서 좌우 컨텍스트를 모두 사용할 수 있기 때문에 양방향 심층 모델보다 훨씬 강력하지 않다.
+
+### 5.2 Effect of Model Size
+
+  이 섹션이서, 우리는 fine-tuning task accuracy에서 model size의 효과를 보여주다. 우리는 다른 layer 수, hidden unit 및 attention head의 수로 여러 BERT 모델을 train했으며, 그렇지 않은 경우에는 앞에서 말한것과 같은 하이퍼 파라미터와 training 절차를 사용했다.
+
+![Screen Shot 2021-06-29 at 2.33.54 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-29 at 2.33.54 PM.png)
+
+  선택된 GLUE task의 결과는 Table 6에서 보여준다. 이 표에는 fine-tuning의 랜덤 restart 5회부터 평균 DevSet의 정확도가 나와있다. 우리는 더 큰 모델이 4개의 데이터셋 모두에서 정확도 향상으로 이어진 다는 것을 볼 수 있다. 심지어 3,600개의 라벨링된 training example만 있고 pre-training task와는 상당히 다른 MRPC에서도 그렇다. 또한 기존 문헌과 연관된 이미 꽤 큰 모델보다 상당한 향상을 달성할 수 있었다는 것도 놀랍다. 예를들어, Vaswani et al. (2017)에서 탐구된 가장 큰 트랜스포머는 인코터에  (L=6, H=1024, A=16)와 100M개 파라미터가 있고, 발견한 가장 큰 트랜스포터는 (L=64, H=512, A=2)와 235M개 파라미터이다. 대조적으로, BERT_BASE는 110M개 파라미터를 갖고있고 BERT_LARGE는 340M개 파라미터를 갖고있다.
+
+ 모델 크기를 들리면 기계번역 및 언어 모델링과 같은 대규모 작업이 지속적으로 개선된다는 것은 오래전부터 알려진 사실이고, 이는 Table 6에 나와 있는 보류된 데이터의 LM perplexity(당혹감, 곤란)을 통해 입증된다. 그러나 우리는 모델이 충분히 pre-trained되면 극한의 모델 사이로 확장하면 또한 매우 작은 규모의 task에서도 대규모 향상으로 이루어 진다는 것을 설득력있게 입증하는 첫번째 방법이라고 믿는다. Peters et al. (2018b)은 pre-trained된 bi-LM 크기를 2에서 4개 layer로 증가시키는 것의 다운스트림 task 영향에 대한 혼합 결과를 보여주고, Melamud et al. (2016)은 hidden dimension size를  200에서 60으로 늘리는 것이 도움되었지만, 1000개 이상에서는 더이상의 향상이 없었다고 말했다.  이러한 이전 연구는 feature based approach를 사용했는데, 우리는 모델이 직접적으로  다운스트림 task에 fine-tuned되고 오직 매우 작은 수의 무작위로 초기화된 추가적인 파라미터를 사용했을 때, 심지어 다운스크림 task가 매우 작을때에도 task-specific 모델은 더 크고, 효과적인 pre-trained representations으로부터 이익을 볼 수 있다.
+
+ ### 5.3 Feature-based Approach with BERT
+
+  지금까지 제시된 모든 BERT 결과는 사전 교육된 모델에 단순한 분류 계층이 추가되고 모든 매개변수가 다운스트림 작업에서 공동으로 미세 조정되는 미세 조정 방식을 사용해 왔다. 그러나 사전 교육된 모델에서 고정된 특징을 추출하는 기능 기반 접근방식은 특정한 장점을 가지고 있다. 첫째, 모든 Task가 쉽게 Transformer 인코더 아키텍처로 표현되는 것은 아니므로 task-specific model architecture가 추가로 필요하다. 두번째, 비싼 training data의 representatioin 를 pre-compute한 다음 이 표현 위에 더 저렴한 모델로 많은 실험은 할 수 있다는 주요 연산 이점이 있다.
+
+  이 섹션에서 우리는 BERT를 CoNLL-200 Named Entity Recognition (NER) 에 적용함으로써 두 접근법을 비교한다. BERT의 인풋에서 우리는  case-preserving WordPiece model을 사용하고, 데이터에 제공된 maximal document context를 포함한다. 표준 관행에 따라 이 작업을 태깅 작업으로 공식화하지만 출력에 CRF layer를 사용하지 않는다. 우리는 첫번째 sub-token의 representation을 NER lavel set을 통해 token-level classifier에 대한 입력으로 사용한다. Fine-tuning approach를 없애기 위해 BERT의 파라미터를 fine-tuning하지 않고 하나 이상의 레이어에서 activations를 추출하여 feature-based approach를 적용한다. 이러한 상황별 임베딩은 분류 계층 이전에 무작위로 초기화된 2-layer 768-dimensional BiLSTM에 대한 입력으로 사용된다.
+
+![Screen Shot 2021-06-29 at 3.15.44 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-06-29 at 3.15.44 PM.png)
+
+  결과는 Table 7에서 보여진다. BERT_LARGE는 최첨단 방식으로 경쟁적으로 수행한다. 최상의 성능 방법은 전체 모델을 미세 조정하는 데 0.3F1밖에 뒤지지 않는 사전 교육된 Transformer의 상위 4개 숨겨진 계층의 토큰 표현을 concat한다. 이것은 BERT가 fine-tuning과 feature-based approaches 둘 다 효과적이라는 것을 보여준다.
+
+## 6. Conclusion
+
+  언어 모델을 통한 이전 학습으로 인한 최근의 경험적 개선은 풍부하고 감독되지 않은 사전 훈련이 많은 언어 이해 시스템의 필수적인 부분이라는 것을 보여주었다. 특히 이러한 결과를 통해 리소스가 낮은 작업도 심층적인 단방향 아키텍처를 활용할 수 있다. 우리의 주요 기여는 이 발견을 깊은 *bidirectional* architecture로 더욱 일반화 함으로써 pre-trained된 동일한 모델이 광범위한 NLP task를 성공적으로 처리할 수 있게 하는것이다.
