@@ -18,3 +18,149 @@
 
 ## Overview of PV System Faults
 
+ PV 시스템에서 발생하는 결함의 분류는 다양한 측면에서 분류할 수 있다. 이러한 결함은 물리적, 환경적, 전기적 세 가지 유형으로 분류된다. 하지만, 결함의 분류는 위치 및 구조와 같은 다른 기초에서도 이루어질 수 있다. 물리적 고장은 내부 또는 외부일 수 있으며 일반적으로 PV 모듈의 손상, 균열 및 열화(degradation)가 포함된다. 또한 PV 시스템 장애는 물리적 현상인 노화 효과에 의해 발생한다. 환경적 결함에는 토양 및 먼지 축적, 새 낙하물(bird drops), 임시 차양(temporary shading) 등이 포함된다. 영구적 환경적 결함에는 설치 위치 선택의 잘못으로 인한 영구 차양(permanent shading)이 포함된다. PV 모듈의 핫스팟 고장(Hotspot faults)은 영구 및 임시 음영(shading)으로 인해 발생할 수 있다. 마지막으로 전기적 고장에는 PV 모듈, 어레이 또는 전체 시스템의 단선, 라인 및 접지 고장이 포함됩니다. 단선 고장(Open circuit)은 PV 회로의 단일 또는 여러 분기에서 와이어가 분리되어 발생한다.
+
+ 라인 결함(Line-line faults)은 PV 어레이에서 의도하지 않은 저임피던스(low impedance) 전류 경로에 의해 생성된다. 접지 고장(ground faults)은 라인 고장과 유사하다; 그러나 저임피던스 경로는 전류 감지 도체(current-carrying conductors)에서 ground/earth까지의 경로이다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-02 at 5.47.43 PM.png" alt="Screen Shot 2021-07-02 at 5.47.43 PM" style="zoom:50%;" />]\
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-02 at 5.47.34 PM.png" alt="Screen Shot 2021-07-02 at 5.47.34 PM" style="zoom:50%;" />
+
+
+
+Figure 1은 classification of PV array faults를, Figure 2는 PV 시스템의 main types of electrical faults을 보여준다.
+
+  PV 모듈은 한 개의 다이오드(diode: 전류를 한 방향으로만 흐르게 하고, 그 역방향으로 흐르지 못하게 하는 성질을 가진 반도체 소자) 또는 두 개의 다이오드 모델로 전기적으로 모델링할 수 있다. 그러나 실제 PV 시스템 모델링은 PV 모듈(치수(dimension), 재료 및 접지 연결(ground connection)), 현장(site), 및 물리적 레이아웃의 변화로 인해 PV 시스템 간에 크게 다르기 때문에 매우 복잡하다. 특히 대규모 발전 시스템에서는 시스템 모델링에 특별한 기술적 과제가 따른다. 이 연구에서는 전기적 고장(electrical faults)만 감지하도록 작업을 제한했다.
+
+![Screen Shot 2021-07-02 at 10.13.47 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-02 at 10.13.47 PM.png)
+
+## Proposed System Architecture
+
+이 챕터에서는 제안된 고장 진단 시스템 아키텍처를 구성하는 몇 가지 단계를 자세히 설명한다. Figure 3은 블록 다이어그램과 제안된 아키텍처의 각 단계 흐름을 보여준다. 
+
+### 3.1 Data Acquisition 
+
+이건 시스템 아키텍처의 첫번재 레이어이다. 모델을 만들기 위해,  PV 어레이에 연결된 각 센서로부터 전류, 전압, 조사 수준 및 온도 데이터를 수집했다. 센서는 5V level에서 동작하지만, 이 연구에 사용된 PV 모듈의 단선 전압(open circuit voltage: V_oc)은 39V고, 단락 전류(sort circuit current: I_sc) 사양은 9A이다. 활성 아날로그 필터(Active analog filters)는 PV 패널에서 전류 및 전압 센서에 주입될 수 있는 노이즈 레벨을 제거하는 데 사용되었다. 조사 수준 데이터는 0.01 ~ 200 klux 범위와 ±2%의 오류율을 가진 상용 럭스 미터(LX1330B)를 사용하여 수집되었다. 모듈에 부착된 센서에서 온도 데이터를 수집했다. 외부 온도와 패널 온도의 차이는 섭씨 1~7도(°C)였다. 모델을 교육하기 위해 가져온 입력 데이터는 각 모듈에서 측정된 평균 온도다. 데이터 세트는 여름과 겨울에 가능한 모든 환경 조건에서 수집된 데이터로 구성된다. 수집된 데이터는 클라우드 서버와 로컬 서버에서 백업되었다.
+
+![Screen Shot 2021-07-02 at 10.14.16 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-02 at 10.14.16 PM.png)
+
+### 3.2 Data Preprocessing
+
+Data preprocessing은 제안된 시스템 아키텍쳐의 두번째 레이어이다. 데이터 입력을 features 추출을 위해 모델에 가져오기 전에 수행한 모든 작업으로 구성된다. Figure 4가  본 연구에서 사용된 MLP 모델의 기능 블록(functional block)을 보여준다. fault detection 모델을 생성하기 위해 7개의 PV 데이터 features를 input layer의 input attributes로 선택한다. 
+
+  x1은 PV 시스템의 branch 1에서 전류(A), x2는 PV 시스템의 branch 2에서 전류(A), x3은 PV 시스템의 branch 1에 있는 전압(V), x4는 PV 시스템의 branch 2에 있는 전압(V), x5는 조사 수준(irradiation level: klux), x6은 각 모듈의 평균 온도(°C), x7은 날씨상태(sunny, snowy, cloudy, and rainy)이다.
+
+  인풋 데이터에 따르면, x7은 범주형 성격이고, 따라서, 적절한 수치 데이터로 인코딩된다. "sunny"는 1로, 나머지("snowy","cloudy", "rainy")는 0으로 인코딩된다. 그 후 모든 입력 데이터는 다음과 같이 표준화(normalize)된다.
+$$
+z = \frac{x-u}{s} \\
+z : \mbox{sample x의 표준 점수(standard score)} \\
+u : \mbox{training samples 의 평균 }\\
+s : \mbox{training samples 의 표준 편차}
+$$
+전체 데이터셋은 training set과 test set 8:2 비율로 쪼개진다.
+
+
+
+### 3.3 MLP & Feature Extraction
+
+  MLP 또는 probabilistic neural network(PNN)은 ML의 비선형 학습 알고리즘(nonlinear learning algorithm)이며 supervised와 unsupervised learning 모두에 광범위하게 적용된다. 그러나 application의 대부분은 감독 학습의 classification 문제에서 발견된다.
+$$
+Φ_{ij}(y)  = \frac{1}{(2π)^{\frac{1}{2}}ω^d}\frac{1}{d}\sum^d_1e^{-\frac{(y-y_{ij})(y-y_{ij})^T}{ω^2}} \\
+
+Φ_{ij}(y) \mbox{: input vector y의 probability density function, } \\
+d : \mbox{training samples의 전체 카테고리 수 } \\
+y_{ij} : i^{th}\mbox{sample type의 }j^{th}\mbox{ training center } \\
+ω : \mbox{smoothing factor}
+$$
+
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 12.35.39 AM.png" alt="Screen Shot 2021-07-03 at 12.35.39 AM" style="zoom:50%;" />
+
+Figure 5는 feedforward multilayer perceptron을 보여준다.
+
+  n0 뉴런을 가진 input layer를 사용했다고 가정하면, input layer X는 다음과 같이 지정할 수 있다.
+$$
+X = (x_0, x_1, ... , x_n)
+$$
+  feature extraction을 위해, hidden layer는 두 개의 layer로 고안되었다 : h1,h2
+
+각각 input dimensions(x1~x7)은 h1에 공급되고, h1의 output은 h2에 공급된다.
+
+Hidden layer에 있는 뉴런의 output h^j_i는 다음과 같이 계산된다.
+$$
+h^j_i = f\Bigg(\sum^{n_{i-1}}_{k=1}W^{i-1}_{k,j}h^k_{i-1}\Bigg) , i=2,...,N ; j=1,...,n, \\
+W^{i-1}_{k,j} : \mbox{hidden layer I 에 있는 neuron k와 hidden layer +1에 있는 neuron j 사이의 weight} \\
+n_i : i^{th} \mbox{hidden layer에 있는 neurons 수}
+$$
+hidden layer 둘 다 전부 네트워크에서 가중치를 초기화하기 위한 *kernel initializer*로 *uniform distribution*를 사용한다. 또한, multiple dimensions의 nonlinear datasets에서 여러 장점 때문에 활성화 함수로 ReLU(Rectified Linear Unit)를 선택했다. ReLU는 다음과 같이 주어진다.
+$$
+y = max(0,x)
+$$
+output layer는 y1, y2, y3의 세 레이어으로 구성됩니다.
+네트워크 output은 다음과 같이 계산된다.
+$$
+y_i = f\Bigg(\sum^{n_N}_{k=1}W^N_{k,j}h^k_N \Bigg) \\
+
+W^N_{k,j} : N^{th}\mbox{hidden layer에 있는 neuron k와 output layer에 있는 neuron j 사이의 weight} \\
+n_N : N^{th} \mbox{hidden layer에 있는 뉴런의 수}
+$$
+output layer는 kernel initializer로 uniform distribution을 사용하지만, 히든 레이어와 달리 *Softmax*를 *activation function*으로 사용하여 logits을 probabilities(확률)로 나타낸다. Softmax function은 다음과 같다.
+$$
+F(X_i) = \frac{exp(X_i) i=0,1,2,...,k}{\sum^k_{j=0}exp(x_j)}
+$$
+  classification의 특징 때문에, equation (3)에 주어진 loss function으로 categorical crossentropy를 사용했다. 여기서 \hat y는 predict output 이다.
+$$
+L(y,\hat y) = -\sum^M_{j=0}\sum^N_{i=0}\Big(y_{ij} * log\Big(\hat y_{ij}\Big)\Big)
+$$
+Categorical crossentropy는 예측 분포(output layer 내 activations, 각 클래스에 하나씩)를 실제 분포와 비교한다. 여기서 true 클래스의 확률은 다른 클래스에 대해 1과 0으로 설정된다. 다른 많은 optimizers들 중에서, 우리는 제안된 모델을 최적화하기 위해 Adam (Adaptive Moment Estimation)을 사용했다. Adam은 각 파라미터에 대해 적응형 학습을 사용하며, 학습 속도의 가중치를 최근 gradients의 실행 평균으로 나눈다. 마지막으로, 모델은 배치 크기가 5이고 200개의 에포크(Epoch)로 교육할 수 있다. Table 1은 MLP를  fault classifier로 구성하는 데 사용되는 다양한 파라미터를 보여준다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.30.58 AM.png" alt="Screen Shot 2021-07-03 at 1.30.58 AM" style="zoom:50%;" />
+
+
+
+ Bias-variance tradeoff를 확인하기 위해, *k-fold crossvalidation*은 5개의 validation을 training 데이터로 분할하여 수행한다. 또한 모델을 개선하고 오버핏을 줄이기 위해 드롭아웃 정규화 기법을 구현하였다. 첫 번째와 두 번째 hidden layer에 각각 0.1과 0.2의 dropout rates가 선택되었다. 모델의 평가, 개선 및 조정 결과는 섹션 4.1에 제시되어 있다.
+
+![Screen Shot 2021-07-03 at 1.35.47 AM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.35.47 AM.png)
+
+## Result and Discussions
+
+### 4.1 Experimental Results
+
+ 실험 데이터 수집을 위해 PV 시스템에서 하드웨어 또는 회로 수정(circuit modification)이 없는 데이터는 "normal(정상)"으로 분류되었다. 고장 데이터는 PV 어레이 회로에서 몇 가지 의도적인 고장을 일으켜 수집되었다. Table 2는 제안된 모델을 교육하기 위해 다양한 환경 조건에서 수집된 데이터의 최소 범위, 최대 범위 및 편차(variance)를 보여준다. 실험 검증을 위해 Table 3과 Figure 6에 제시된 사양으로 실제 전력 생산 산업에 사용되는 PV 시스템을 설정했다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.37.07 AM.png" alt="Screen Shot 2021-07-03 at 1.37.07 AM" style="zoom:50%;" /><img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.37.23 AM.png" alt="Screen Shot 2021-07-03 at 1.37.23 AM" style="zoom:40%;" />
+
+  Table 2와 같이, 겨울 데이터 세트의 변화(variance)는 정확한 예측을 위해 모델을 훈련하는 동안 각별한 주의가 필요한 여름 시즌보다 매우 크다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.40.43 AM.png" alt="Screen Shot 2021-07-03 at 1.40.43 AM" style="zoom:28%;" />   <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.41.00 AM.png" alt="Screen Shot 2021-07-03 at 1.41.00 AM" style="zoom:26%;" />
+
+  Figures 7,8은 각각 sunny days와 cloudy days 동안의 여름과 겨울의 input variable x1,x2의 normal 및 line-line fault dataset features를 보여준다.
+
+   입력 데이터 집합 중에서  irradiation level은 절대 조건에서 가장 높은 분산 수준을 갖는 것으로 보인다. 그러나 현재 센서(S_I1/S_I2) 데이터를 시각화하는 것은 relative variance가 다른 input variables 중에서 가장 높았기 때문에 타당할 것이다. Figure 8에서 볼 수 있듯이, 겨울철에는 대부분 'normal cloudy'과 'line-line' fault data를 구별하기가 어렵다.
+
+  Figure 9는 7-차원의 데이터(x1 ~ x7) 를 스케일링된 2차원 데이터로 시각화하는 principal component analysis (PCA) dimensional reduction technique를 보여준다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.49.15 AM.png" alt="Screen Shot 2021-07-03 at 1.49.15 AM" style="zoom:50%;" />
+
+그림의 왼쪽 중앙과 오른쪽 중앙 부분에서 볼 수 있듯이, "normal" 상태 데이터와 "line-line" 결함 데이터(fault data)가 겹치는 작은 영역이 존재한다.
+
+![Screen Shot 2021-07-03 at 1.50.54 AM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.50.54 AM.png)
+
+  그림 10은 8:2의 train-test split 비율을 가진 데이터 세트의 training-test validation을 보여준다. 제안된 PNN 모델은 3000개의 데이터셋으로 광범위하게 훈련되었으며, 각 데이터셋은 PV  세스템의 서로다른 상태에서 1000개씩이었다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.52.47 AM.png" alt="Screen Shot 2021-07-03 at 1.52.47 AM" style="zoom:50%;" />
+
+  Figure 11은 테스트 데이터를 교육 받은 모델에 가져올 때 100% 정확도의 결과를 제공하는 confusion matrix 를 보여준다. Confusion matrix에 표시된 수치 값은 절대 용어로 표현된다. 즉, line-line fault에 대한 총 예측 라벨 수는 184개였고, line-line fault에 대한 실제 라벨은 184개로 100%이다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.55.36 AM.png" alt="Screen Shot 2021-07-03 at 1.55.36 AM" style="zoom:50%;" />  
+
+Figure 12 전북대학교 캠퍼스에서 실험용 1.8 kW PV 시스템의 설정을 보여준다.
+
+![Screen Shot 2021-07-03 at 1.56.52 AM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.56.52 AM.png)
+
+![Screen Shot 2021-07-03 at 1.56.34 AM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 1.56.34 AM.png)
+
+  Table 4는 제안된 방법과 문헌에서 발견된 기존 연구의 비교를 보여준다. Figure 13은 fault detection을 위해 제안된 모델을 구현하는 개발된 데스크톱 애플리케이션의 스크린샷을 보여준다.
+
+### 4.2. Discussions
+
