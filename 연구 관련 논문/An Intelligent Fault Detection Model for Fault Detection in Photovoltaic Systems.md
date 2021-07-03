@@ -46,7 +46,7 @@ Figure 1은 classification of PV array faults를, Figure 2는 PV 시스템의 ma
 
 ### 3.2 Data Preprocessing
 
-Data preprocessing은 제안된 시스템 아키텍쳐의 두번째 레이어이다. 데이터 입력을 features 추출을 위해 모델에 가져오기 전에 수행한 모든 작업으로 구성된다. Figure 4가  본 연구에서 사용된 MLP 모델의 기능 블록(functional block)을 보여준다. fault detection 모델을 생성하기 위해 7개의 PV 데이터 features를 input layer의 input attributes로 선택한다. 
+Data preprocessing은 제안된 시스템 아키텍쳐의 두번째 레이어이다. features 추출을 위해 데이터 input을 모델에 넣기 전에 수행한 모든 작업으로 구성된다. Figure 4가  본 연구에서 사용된 MLP 모델의 기능 블록(functional block)을 보여준다. fault detection 모델을 생성하기 위해 7개의 PV 데이터 features를 input layer의 input attributes로 선택한다. 
 
   x1은 PV 시스템의 branch 1에서 전류(A), x2는 PV 시스템의 branch 2에서 전류(A), x3은 PV 시스템의 branch 1에 있는 전압(V), x4는 PV 시스템의 branch 2에 있는 전압(V), x5는 조사 수준(irradiation level: klux), x6은 각 모듈의 평균 온도(°C), x7은 날씨상태(sunny, snowy, cloudy, and rainy)이다.
 
@@ -72,7 +72,6 @@ d : \mbox{training samples의 전체 카테고리 수 } \\
 y_{ij} : i^{th}\mbox{sample type의 }j^{th}\mbox{ training center } \\
 ω : \mbox{smoothing factor}
 $$
-
 
 <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-03 at 12.35.39 AM.png" alt="Screen Shot 2021-07-03 at 12.35.39 AM" style="zoom:50%;" />
 
@@ -180,4 +179,4 @@ ML기반 fault detection과 진단 기술이 최근데 채택되었고, 향후 �
 
 ## Conclusion
 
-  PV 시스템은 다양한 faults과 failures의 영향을 받으며, 그러한 faults과 failures의 조기 고장 감지는 PV 시스템의 효율성과 안전에 매우 중요하다. ML 기반 고장 감지 모델은 데이터로 교육되며 매우 높은 정확도로 예측 결과를 제공한다. 그러나, PV 시트템을 위한 데이터 기반 고장 감지 모델은 특히 environmental parameters를 고려하지 않을 경우 잘못된 예측을 제공할 수 있다. 이 논문에서는 고장 유형을 정확하게 분류하기 위해 PNN을 기반으로 PV 어레이를 위한 지능형 고장 감지 모델을 개발했다. 이 모델은 여름과 겨울의 다양한 환경 조건에서 서로 다른 데이터 값을 포함하는 대규모 데이터 세트를 사용하여 훈련되었다. 실험 검증을 위해 1.8kW(300W 패널 6개, 병렬로 연결된 라인 2개, 직렬로 연결된 패널 3개)에서 다양한 고장 상태 및 정상 상태 데이터 세트가 그리드 연결 PV 시스템으로 수집된다. 실험 결과는 제안된 방법이 결함 상태와 정상 상태를 구별하기 매우 어려운 경우 결과를 정확하게 예측하는 데 우월하다는 것을 보여준다.
+  PV 시스템은 다양한 faults과 failures의 영향을 받으며, 그러한 faults과 failures의 조기 고장 감지는 PV 시스템의 효율성과 안전에 매우 중요하다. ML 기반 고장 감지 모델은 데이터로 교육되며 매우 높은 정확도로 예측 결과를 제공한다. 그러나, PV 시트템을 위한 데이터 기반 고장 감지 모델은 특히 environmental parameters를 고려하지 않을 경우 잘못된 예측을 제공할 수 있다. 이 논문에서는 고장 유형을 정확하게 분류하기 위해 PNN을 기반으로 PV 어레이를 위한 지능형 고장 감지 모델을 개발했다. 이 모델은 여름과 겨울의 다양한 환경 조건에서 서로 다른 데이터 값을 포함하는 대규모 데이터 세트를 사용하여 훈련되었다. 실험 검증을 위해 1.8kW(300W 패널 6개, 병렬로 연결된 라인 2개, 직렬로 연결된 패널 3개)에서 다양한 고장 상태 및 정상 상태 데이터 세트가 그리드 연결 PV 시스템으로 수집된다. 
