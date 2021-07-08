@@ -14,7 +14,7 @@
 
   Techniques는 일반적으로 PV 결함의 detection 및 classification로 나뉜다. 이러한 작업은 주로 open-circuit, short-circuit 및 module mismatch와 같은 가장 반복적인 고장에 초점을 맞춘다. 예를 들어, [12]에서는 위성 데이터를 기반으로 하는 고장 감지가 제안된다. 다른 작업에서는 캐니 에지 검출기(Canny edge detector)와 연결된 열 영상(thermal images)을 사용한 PV 모듈 고장 감지가 제시된다. 최근에는 PV 시스템 모델링을 기반으로 한 몇 가지 방법이 제안되어 실제 PV 발전소에서 최첨단 결과를 달성하고 있다. 그러나 이러한 최신 모델은 대부분 정적 모델을 기반으로 하기 때문에 관련 동적 모델링을 무시하며 짧은 시간 내에 발생하는 이벤트를 감지하기가 어렵다. 
 
-  fault classification 맥락에서는, PV 발전소의 이론 및 시뮬레이션 모델을 사용한 시각적 방법(visual methods), 열 그래픽 이미지 분석 방법(thermographic image analysis methods), 그리고 수학적 방법(mathematical methods)과 같은 다양한 접근법이 있다. 더 최근에 몇몇 ML기반 techniques가 classification performance를 주로 PV 모듈의 shadowing과 depradation부분 등 여러 케이스에서 향상시키도록 제안되었다. 그럼에도 불구하고, 대부분의 방법은 시뮬레이션 데이터에 초점을 맞추고 있으며 저자들은 온라인 결함 분류를 위한 방법에 대한 광범위한 분석을 제시하지 않는다. 
+  fault classification 맥락에서는, PV 발전소의 이론 및 시뮬레이션 모델을 사용한 시각적 방법(visual methods), 열 그래픽 이미지 분석 방법(thermographic image analysis methods), 그리고 수학적 방법(mathematical methods)과 같은 다양한 접근법이 있다. 더 최근에 몇몇 ML기반 techniques가 classification performance를 주로 PV 모듈의 shadowing과 degradation부분 등 여러 케이스에서 향상시키도록 제안되었다. 그럼에도 불구하고, 대부분의 방법은 시뮬레이션 데이터에 초점을 맞추고 있으며 저자들은 온라인 결함 분류를 위한 방법에 대한 광범위한 분석을 제시하지 않는다. 
 
   Detection과 classification methos에 제시된 limitations를 대부분의 모델에는 모니터링 시스템에 통합된 전용 하드워어 또는 시스템의 솔루션 결과가 포함되어 있지 않다는 사실에 추가할 수 있으며, 그러한 경우 PV 발전소 output이 제한되거나 detection이 시스템의 정상 작동을 방해하게 수행될 수 있다. 이러한 의미에서 본 연구의 주요 기여는 embedded PV plant monitoring system과 고장 감지 및 분류 접근법의 통합으로, MS를 발전소에 통합시키는 것 외에도 다양한 PV 결함을 온라인에서 비침해적으로 식별하고 분류할 수 있게 해주는 것이다. 또한, 5kW PV 설비에서 여러 가지 실제 고장 시나리오를 각각 감지 및 분류하기 위한 동적 모델과 기계 학습 접근법의 상세한 비교를 제시하며, 온라인 고장 감지 및 PV 시스템 분류에 가장 적합한 모델을 가리킨다. 우리가 아는 한, 그러한 제안은 아직 관련 문헌에 제시되지 않았다.
 
@@ -82,7 +82,7 @@
 
 ## **Proposed Monitoring System**
 
-각각 N 직렬로 연결된 태양광 모듈 PV{1, ...,N}(으)로 구성된 문자열 그룹 **S**로 구성된 태양광 시스템을 가정해 보자. 임의의 string s(*s* ∈ **S**)가 Irradiance(*G*)의 대상이 되면, 전압 V\_{dc,s}와 전류 I\_{dc,s} (결과적으로 output power P\_{dc,s} = V\_{dc,s}I_{dc,s} ) 가 생성되는데, 이는 변함없는 PV_j ∀ j를 고려하고 임의의 온도 T에 의존한다. 인버터가 언급된 S 문자열 그룹의 에너지 출력을 전압은 Vac이고 전류는 Iac인 two-phase ac waveform으로 변환하도록 배치된다. 변환된 전력이 유틸리티 그리드에 주입된다. 데이터 수집 시스템은 최소 샘플링 주파수가 1Hz인 위에서 언급한 모든 변수를 수집할 수 있다. 출력은 다음과 같은 시스템 고장의 영향을 받을 수 있다 : (i) 임의의 수의 인접 PV\_{j, ...,k} 모듈 간에 short circuit, (ii) 모듈 string  ∈ S의 open circuit, (iii) 인접한 PV*j*,*k* 모듈 쌍 간의 높은 resistance connection, (iv) 부분 섀도우로 인한 모듈 output mismatch. 우리는 수집된 데이터를 사용하여 고려 대상 시스템이 제안된 고장 중 하나에서 작동 중인지 여부를 감지하는 고장 감지 시스템을 제안한다. 결함이 감지되면 해당 알고리즘에 의해 결함 분류가 수행되고 그 결과가 사용자에게 통지된다. 
+각각 N 직렬로 연결된 태양광 모듈 PV{1, ...,N}(으)로 구성된 문자열 그룹 **S**로 구성된 태양광 시스템을 가정해 보자. 임의의 string s(*s* ∈ **S**)가 Irradiance(*G*)의 대상이 되면, 전압 V\_{dc,s}와 전류 I\_{dc,s} (결과적으로 output power P\_{dc,s} = V\_{dc,s}I_{dc,s} ) 가 생성되는데, 이는 변함없는 PV_j ∀ j를 고려하고 임의의 온도 T에 의존한다. 인버터가 언급된 S 문자열 그룹의 에너지 출력을 전압은 Vac이고 전류는 Iac인 two-phase ac waveform으로 변환하도록 배치된다. 변환된 전력이 유틸리티 그리드에 주입된다. 데이터 수집 시스템은 최소 샘플링 주파수가 1Hz인 위에서 언급한 모든 변수를 수집할 수 있다. 출력은 다음과 같은 시스템 고장의 영향을 받을 수 있다 : (i) 임의의 수의 인접 PV\_{j, ...,k} 모듈 간에 short circuit, (ii) 모듈 string ∈ S의 open circuit, (iii) 인접한 PV*j*,*k* 모듈 쌍 간의 높은 resistance connection, (iv) 부분 섀도우로 인한 모듈 output mismatch. 우리는 수집된 데이터를 사용하여 고려 대상 시스템이 제안된 고장 중 하나에서 작동 중인지 여부를 감지하는 고장 감지 시스템을 제안한다. 결함이 감지되면 해당 알고리즘에 의해 결함 분류가 수행되고 그 결과가 사용자에게 통지된다. 
 
 <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-05 at 4.26.32 PM.png" alt="Screen Shot 2021-07-05 at 4.26.32 PM" style="zoom:50%;" />
 
@@ -180,11 +180,11 @@
 
 ![Screen Shot 2021-07-06 at 1.10.12 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-06 at 1.10.12 PM.png)
 
-또는 z transform을 사용하여 시스템의 transfer function을 구했다.
+또는  z transform을 사용하여 시스템의 transfer function을 구했다.
 
 ![Screen Shot 2021-07-06 at 1.11.12 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-06 at 1.11.12 PM.png)
 
-G(z) ∈  C는 Z irradiance의 Transform,  *g*(*k*), and *P*(*Z*) ∈ C는 output power \hat p\_{dc,s}(k)의 Z trainsform이고, 둘 다 주파수 영역에 있다. 파라미터의 벡터  *θ* = [*a*1(*k*) *a*2(*k*) *b*0(*k*) *b*1(*k*)]*T* ∈ R4는 Recursive Least Squares (RLS) algorithm를 사용하여 추정된다. (결함 또는 열화 프로세스 후) 시간이 지남에 따라 시스템이 동적으로 변할 수 있으므로 이러한 매개변수의 발전은 그림 9에서 볼 수 있다.
+*G(z)* ∈  C는  irradiance *g(k)*의 Z Transform, and *P*(*Z*) ∈ C는 output power \hat p\_{dc,s}(k)의 Z trainsform이고, 둘 다 주파수 영역에 있다. 파라미터의 벡터  *θ* = [*a*1(*k*) *a*2(*k*) *b*0(*k*) *b*1(*k*)]*T* ∈ R4는 Recursive Least Squares (RLS) algorithm를 사용하여 추정된다. (결함 또는 열화 프로세스 후) 시간이 지남에 따라 시스템이 동적으로 변할 수 있으므로 이러한 매개변수의 발전은 그림 9에서 볼 수 있다.
 
 <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-06 at 1.19.49 PM.png" alt="Screen Shot 2021-07-06 at 1.19.49 PM" style="zoom:50%;" />
 
@@ -288,7 +288,7 @@ $$
 
 이러한 특성과 모델 간의 성능 비교는 표 9에 요약되어 있습니다.
 
-<img src="/Users/sua/Desktop/Screen Shot 2021-07-06 at 4.19.22 PM.png" alt="Screen Shot 2021-07-06 at 4.19.22 PM" style="zoom:50%;" />
+![Screen Shot 2021-07-07 at 7.45.20 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-07 at 7.45.20 PM.png)
 
 표 9를 기반으로, ARX 모델 접근법이 분석된 모든 통계 속성에서 다른 세 가지 모델을 극복한다고 결론을 내릴 수 있습니다. ARX 모델이 제공하는 전반적인 정확도는 차상위 모델(DDM)보다 19.64% 더 높다는 점을 유념해야 합니다.
 
