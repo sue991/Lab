@@ -130,3 +130,76 @@ $$
 
 ### Datasets
 
+우리는 3개의 공개 문서 레벨 관계 추출 데이터셋에 대해 ATLOP 모델을 평가한다. 데이터 세트 통계는 표 1에 나와 있다.
+
+- **DocRED**(Yao et al. 2019)는 문서 레벨 RE를 위한 대규모 크라우드 소스 데이터 세트입니다. 그것은 위키피디아 기사로 구성되었습니다. DocRED는 교육을 위한 3053개의 문서로 구성됩니다. 관계를 표현하는 엔티티 쌍의 경우 약 7%에 둘 이상의 관계 레이블이 있습니다.
+- **CDR**(Li et al. 2016)은 바이오메디컬 영역에서 사람이 주석을 단 데이터 세트입니다. 이 문서는 교육을 위한 500개의 문서로 구성되어 있습니다. 이 태스크는 화학 개념과 질병 개념 간의 이항 상호작용을 예측하는 것입니다.
+- **GDA**(Wu 등. 2019b)는 바이오메디컬 영역의 대규모 데이터 세트입니다. 이 문서는 29192개의 교육 자료로 구성되어 있습니다. 이 태스크는 진과 질병 개념 간의 이항 상호작용을 예측하는 것입니다. Christopouou, Miwa, Ananiadou(2019)에 이어 교육 및 개발 세트로 교육 세트를 80/20 분할합니다.
+
+### Experiment Settings
+
+당사의 모델은 Hugghingface의 Transformer를 기반으로 구현되었다. 우리는 DocRED의 인코더로 케이스 BERT-base 또는 Roberta-large를 사용하고 CDR과 GDA의 케이스 SciBERT를 사용한다. 우리는 Apex library를 기반으로 한 mixed-precision training을 사용한다. 이 모델은 learning rates ∈ {2e−5, 3e−5, 5e−5, 1e−4} 를 사용하는 AdamW에 최족화되었고, 처음 6% steps동안 linear warmup을 수행한 후 0으로 linear decay (선형적으로 감소) 한다. 우리는 레이어 사이 dropout을 0.1로 지정하고, 모델 파라미터의 gradients를 max norm of 1.0로 클리핑한다.  dev set 의 F1 score를 기준으로 early stopping을 수행한다. 모든 hyper-parameter는 dev set에서 조정된다. 몇몇 hyper parameters를 Table 2에서 볼 수 있다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.00.16 PM.png" alt="Screen Shot 2021-07-13 at 7.00.16 PM" style="zoom:50%;" />
+
+  global threshold을 사용하는 모델의 경우 {0.1, 0.2, ..., 0.9}에서 임계값을 검색하고 devF1을 최대화하는 임계값을 선택한다. 모든 모델은 1개의 Tesla V100 GPU로 교육된다. 
+
+DocRED 데이터 세트의 경우 BERT 기반 인코더의 경우 약 1시간 45분, RoBERTA 대형 인코더의 경우 약 3시간 30분이 소요됩니다. CDR 및 GDA 데이터셋의 경우 SciBERT 인코더 교육에는 각각 20분 및 3시간 30분이 소요됩니다.
+
+### Main Results
+
+우리는 DocRED에서 ATLOP를 sequence-based models, graph- based models, and transformer-based models과 비교한다. 실험 결과는 Table 3에서 보여준다.
+
+![Screen Shot 2021-07-13 at 7.07.18 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.07.18 PM.png)
+
+Yao et al. (2019)에 따르면, 평가에 F1과 Ign F1을 사용한다.  Ign F1은 training 및dev/test sets에 의해 공유되는 relational facts을 제외한 F1 점수를 나타낸다.
+
+**Sequence-based Models.** 이 모델은 CNN과 BiLSTM과 같은 neural architectures를 사용하여 전체 문서를 인코딩한 다음 엔티티 임베딩을 얻고 bilinear function이 있는 각 엔티티 쌍의 relation을 예측한다.
+
+**Graph-based Models.**  이러한 모델은 latent graph structures를 학습하여 문서 그라프를 작성하고 graph convolutional network로 inference를 수행한다. 우리는 두개의 최신 모델인 AGGCN와 LSR를 비교를 위해 포함한다. AGGCN의 결과는 Nan et al. (2020)에 의한 재실행에서 비롯되었다.
+
+**Transformer-based Models.** 이러한 모델은 그래프 구조를 사용하지 않고 사전 교육된 언어 모델을 문서 레벨 RE에 직접 적용한다. 또한 pipeline models(BERT-TS (Wang et al. 2019a)), hierarchical models(HIN-BERT (Tang et al. 2020a) 및 pre-training methods (CorefBERT 및 RoBERTa (Ye. 2020a))으로 더 나눌 수 있다. 또한 BERT 기준선(Wang et al. 2019a)과 재구축된 BERT 기준선을 비교해서 포함한다.
+
+  re-implemented BERT baseline은 Wang 외 연구진(2019a)보다 훨씬 우수한 결과를 얻었으며, 최첨단 RNN 기반 모델 BiLSTM-LSR을 1.2% 능가한다. 이는 pre-trained language models이 그래프 구조를 명시적으로 사용하지 않고도 엔티티 간의 long-distance dependencies을 캡처할 수 있음을 보여준다. 다른 기술을 통합한 후, 향상된 baseline BERT-E_BASE는 현재 최신 모델 BERT-LSR_BASE에 가까운 58.52%의 F1 점수를 획득했다. 우리의 BERT-ATLOP_BASE 모델은 BERT-E_BASE의 성능을 2.6% 향상시켜 제안된 두 가지 새로운 기술의 효율성을 입증한다. ALTOP 모델은 Roberta-large를 인코더로 사용하여 63.40%의 F1 점수를 달성했다. 이는 DocRED에 대한 새로운 첨단 결과이다. 
+
+### Ablation Study
+
+제안된 기술의 효과를 보여주기 위해 한 번에 한 구성 요소를 꺼서 ATLOP와 향상된 기준선에 대해 두 세트의 ablation studies를 수행한다. 모든 구성 요소가 모델 성능에 영향을 미친다는 것을 관찰했다. Adaptive thresholding과 localized context pooling은 모두 성능을 모델링하는 데 중요하므로 ATLOP에서 제거하면 개발 F1 점수가 각각 0.89%와 0.97% 하락한다. Adaptive thresholding은 모델이 adaptive thresholding loss로 최적화되었을 때만 작동한다. binary cross entropy로 교육된 모델에 adaptive thresholding을 적용하면 dev F1이 41.74%로 산출된다.
+
+  우리의 향상된 기준선 모델 BERT-EBASE의 경우 group bilinear와 logsumexp pooling 모두 dev F1을 약 1% 증가시킨다.  entity markers의 개선은 미미하지만(dev F1의 경우 0.24%) mention embedding 및 mention-level attention를 더 쉽게 유도할 수 있기 때문에 모델에 이 기법을 사용한다.
+
+### Analysis of Thresholding
+
+Global thresholding은 서로 다른 클래스 또는 인스턴스에서 모델 confidence의 변동을 고려하지 않으므로 성능이 최적화되지 않습니다. 한 가지 흥미로운 질문은 클래스별로 서로 다른 임계값을 조정하여 글로벌 임계값을 개선할 수 있는지 여부이다. 이 질문에 답변하기 위해, 우리는 서로 다른 클래스에 대해 서로 다른 임계값을 조정하여  cyclic optimization algorithm(Fan 및 Lin 2007)을 사용하여 DocRED의 dev F1 점수를 최대화하려고 한다. 결과는 Table 6에 보여진다. 
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.43.15 PM.png" alt="Screen Shot 2021-07-13 at 7.43.15 PM" style="zoom:50%;" />
+
+클래스별 임계값을 사용하면 개발 F1 점수가 61.73%로 크게 향상되어 adaptive thresholding의 결과보다 훨씬 더 높다. 그러나 이 이득은 테스트 세트로 전송되지 않는다. 클래스별 임계값 지정 결과는 글로벌 임계값보다 훨씬 더 나쁘다. 이는 교육 후 클래스별 임계값을 조정하면 개발 세트에 심각한 오버핏이 발생할 수 있음을 나타낸다. adaptive thresholding 기술은 교육에서 임계값을 학습하여 테스트 세트로 일반화할 수 있다. 
+
+### Analysis of Context Pooling
+
+LOP(Localized Context Pooling) 기술이 multi-entity 문제를 완화하는 것을 보여주기 위해 DocRED 개발 세트의 문서를 엔터티 수로 여러 그룹으로 나누고 각 그룹에 대해 localized context pooling을 포함하거나 포함하지 않고 교육된 모델을 평가한다. 실험 결과는 Figure 4에서 볼 수 있다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.52.16 PM.png" alt="Screen Shot 2021-07-13 at 7.52.16 PM" style="zoom:50%;" />
+
+두 모델 모두 문서에 엔티티가 더 있을 경우 성능이 저하된다. LOP가 있는 모델은 문서에 매우 적은 수의 엔티티(1 ~ 5개)가 포함된 경우를 제외하고 LOP가 없는 모델보다 일관되게 성능이 우수하며, 엔티티 수가 증가할수록 개선 효과가 커진다. 그러나 1~5개의 엔티티만 포함하는 문서 수는 매우 적으며(개발 세트에서는 4개), DocRED의 문서에는 평균 19개의 엔티티가 포함되어 있다. 따라서 localized context pooling은 전체 F1 score 를 여전히 크게 향상시킨다. 이는 localized context pooling 기술이 엔티티 쌍의 관련 컨텍스트를 캡처하여 다중 엔티티 문제를 완화할 수 있음을 나타낸다. 
+
+  또한 Figure1에서 예제의 context weights를 시각화한다. Figure 5에서 볼 수 있듯이,  localized context pooling은 *born* 과 *died* 에 높은 가중치를 주는데, 이것들은 두 엔티티 (*John Stanistreet*, *Bendigo*)에 가장 연관있는 것들이다.
+
+![Screen Shot 2021-07-13 at 7.57.14 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.57.14 PM.png)
+
+이 두 token은 각각  *place of birth*와 *place of death*에 대한 두 가지 기본적인 진실 관계에 대한 증거이기도 하다. *elected*이나 *politician*과 같은 토큰은 *John Stanistreet*이라는 subject entity에만 연관되어 있기 때문에 훨씬 더 작은 가중치를 갖는다. 시각화는 localized context가 두 엔티티와 관련된 컨텍스트를 찾을 수 있음을 보여 준다. 
+
+## Related Work
+
+관계 추출에 대한 초기 연구는 문장 내에서 두 실체 사이의 관계를 예측하는 데 집중된다. 시퀀스 기반 방법(Zeng et al. 2014; Wang et al. 2016; Zhang et al. 2017), 그래프 기반 방법(Miwa 및 Bansal 2016; Zhang, Qi 및 Manning 2018; Guo, Zhang, Chi. 2019a, Wuz et al. 2019), 변압기 기반 방법(Alt, Huheng).oares et al. 2019)는 이 문제를 해결하는 데 효과적인 것으로 나타났다.
+
+  그러나 많은 양의 관계가 여러 문장(Verga, Strubell, McCallum 2018; Yao et al. 2019)으로 표현됨에 따라, 최근의 연구는 문서 수준 관계 추출을 검토하기 시작한다. 문서 레벨 RE에 대한 접근 방식은 대부분 Quirk와 Poon(2017)이 도입한 문서 그래프를 기반으로 한다. 구체적으로, 노드로서 단어를 사용하고 내부 및 inter-sentential dependencies(의존성 구조, coreferences 등)을 edges로 사용한다. 이 문서 그래프는 엔티티 쌍의 features을 추출하는 통합된 방법을 제공한다. 이후의 연구는 neural architectures를 개선하거나 더 많은 유형의 edges를 추가함으로써 아이디어를 확장한다. 특히 Christopouou, Miwa, Ananiadou (2019)는 세분화가 다른 노드(문장, 언급, 엔티티)를 구성하고 이력적으로 생성된 에지와 연결하며 에지 지향 모델(Christopou, Miwa, Ananiadou 2018)과의 관계를 유추합니다. Nan 외 연구진(2020)은 문서 그래프를 잠재적 변수로 간주하여 체계적인 관심에 의해 유도하고 있습니다(Liu 및 Lapata 2018). 본 연구는 또한 전체 문서에서 멀티홉 정보 집계를 가능하게 하는 개선 메커니즘을 제안한다. LSR 모델은 문서 레벨 RE에서 최첨단 성능을 달성했다. 
+
+  dependency structures 및 coreferences와 같은 에지는 사전 교육 언어 모델에 의해 자동으로 학습될 수 있기 때문에 문서 그래프를 도입하지 않고 사전 교육 언어 모델을 직접 적용하는 모델도 있었다. 특히, Wang 외 연구진(2019a)은 먼저 엔티티 쌍에 relation이 존재하는지 여부를 예측한 후 특정 관계 유형을 예측하는 파이프라인 모델을 제안한다. Tang 외 연구진(2020a)은 엔티티 수준, 문장 수준 및 문서 수준의 엔티티 정보를 집계하는 계층적 모델을 제안한다.  Ye et al. (2020)는 사전 교육을 위한  copy-based training objective를 도입하여, coreferential information를 포착하는 모델의 능력을 강화하고 coreferential reasoning을 필요로 하는 다양한 NLP 작업에서 눈에 띄는 이점을 제공한다. 
+
+  그러나, 어떤 모델도 문장 수준 RE와 문서 수준 RE의 주요 차이점에 속하는 multi-entity 및 multi-label problems에 초점을 맞추지 않는다. 우리의 ATLOP 모델은 두 가지 새로운 기술, 즉  adaptive thresholding 및 localized context pooling으로 기존 모델보다 훨씬 우수한 성능을 제공한다. 
+
+## Conclusion
+
+  본 연구에서는 문서 수준 관계 추출을 위한 ATLOP 모델을 제안하며, 이 모델은 adaptive thresholding과 localized context pooling이라는 두 가지 새로운 기술을 특징으로 한다. Adaptive thresholding 기술은 multi-label classification의 글로벌 임계값을 각 엔티티 쌍에 대한 최상의 임계값을 결정할 수 있는 학습 가능한 임계값 클래스로 대체한다. localized context pooling은 pre-trained attention heads를 사용하여 엔티티 쌍과 관련된 컨텍스트를 찾으므로 다중 엔티티 문제를 완화하는 데 도움이 된다. 3개의 공개 문서 레벨 관계 추출 데이터셋에 대한 실험을 통해 ATLOP 모델이 기존 모델보다 훨씬 우수한 성능을 발휘하고 모든 데이터셋에서 새로운 최첨단 결과를 얻을 수 있음을 알 수 있다.
