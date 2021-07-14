@@ -4,7 +4,7 @@ https://github.com/wzhouad/ATLOP
 
 ## Abstract
 
- Document-level relation extraction (RE)은 sentence-level에 비해 새로운 과제를 제기한다. 일반적으로 하나의 문서에는 여러 개의 엔티티 쌍이 포함되어 있으며 하나의 엔티티 쌍은 여러 개의 가능한 relation과 연결된 문서에서 여러 번 발생한다. 이 논문에서, 우리는 multi-label과 multi-entity problems를 해결하기 위해 두개의 새로운 기술인 adaptive thresholding과 localized context pooling을 제안한다. Adaptive thresholding은  이전 작업의 multi-label classification에 대한 global threshold를 learnable entities-dependent threshold로 대체한다. Localized context pooling은 pre-trained language models에서 relation을 직접적으로 전달하여 relation을 결정하는 데 유용한 관련 컨텍스트를 찾는다. 우리는 세 가지  document-level RE benchmark datasets를 사용하여 실험한다: DocRED, CDR, GDA. 우리의 ATLOP(**A**daptive **T**hresholding and **L**ocalized c**O**ntext **P**ooling) 모델은 63.4의 F1 score를 달성했고, 또한 상당히 CDR과 GDA에 있는 모델보다 좋은 성능을 보였다. 
+ Document-level relation extraction (RE)은 sentence-level에 비해 새로운 과제를 제기한다. 일반적으로 하나의 문서에는 여러 개의 엔티티 쌍이 포함되어 있으며 하나의 엔티티 쌍은 여러 개의 가능한 relation과 연결된 문서에서 여러 번 발생한다. 이 논문에서, 우리는 multi-label과 multi-entity problems를 해결하기 위해 두개의 새로운 기술인 adaptive thresholding과 localized context pooling을 제안한다. Adaptive thresholding은  이전 작업의 multi-label classification에 대한 global threshold를 learnable entities-dependent threshold로 대체한다. Localized context pooling은 pre-trained language models에서 relation을 직접적으로 전달하여 relation을 결정하는 데 유용한 관련 컨텍스트를 찾는다. 우리는 세 가지 document-level RE benchmark datasets를 사용하여 실험한다: DocRED, CDR, GDA. 우리의 ATLOP(**A**daptive **T**hresholding and **L**ocalized c**O**ntext **P**ooling) 모델은 63.4의 F1 score를 달성했고, 또한 상당히 CDR과 GDA에 있는 모델보다 좋은 성능을 보였다. 
 
 ## Introduction
 
@@ -14,7 +14,7 @@ RE는 주어진 텍스트에서 두 엔티티 간의 관계를 식별하는 것�
 
 이 Task는 엔티티 쌍(색상으로 강조 표시됨)의 relation types을 분류하는 것이다. 특정 개체 쌍(*John Stanistreet, Bendigo*)의 경우, 첫 두 문장과 마지막 문장에 의해 두 개의 relation *place of birth* 와  *place of death* 가 표현된다. 다른 문장은 이 엔티티 쌍에 대해 부적절한 정보를 포함하고 있다.
 
-  multi-entity problem을 해결하기 위해 대부분의 최신 접근 방식은 dependency struc- tures, heuristics 또는 structured attention을 이용한 document graph를 생성한 다음  graph neural models을 사용하여 추론을 수행한다. Constructed graphs는 문서에서 멀리 흩어져 있는 엔티티를 브리지(bridge)하여 장거리 정보를 캡처하는 데 RNN 기반 encoders의 결점을 완화시킨다. 그러나, transformer-based models은 암시적으로 long-distance dependencies를 모델링할 수 있기 때문에, graph structures가 BERT와 같은 사전 교육 언어 모델에 도움이 되는지 여부는 불분명하다. 그래프 구조를 도입하지 않고도 사전 교육 언어 모델을 직접 적용할 수 있는 접근 방식도 있었다. 단순히 엔티티 토큰의 embedding을 평균하여 entity embeddings을 얻고 이를 classifier에 입력하여 relation labels을 가져온다. 그러나, 각 엔티티는 서로 다른 엔티티 쌍에서 같은 representation을 가지므로, 관련없는 context에서 noise가 발생할 수 있다.
+  multi-entity problem을 해결하기 위해 대부분의 최신 접근 방식은 dependency structures, heuristics 또는 structured attention을 이용한 document graph를 생성한 다음  graph neural models을 사용하여 추론을 수행한다. Constructed graphs는 문서에서 멀리 흩어져 있는 엔티티를 브리지(bridge)하여 장거리 정보를 캡처하는 데 RNN 기반 encoders의 결점을 완화시킨다. 그러나, transformer-based models은 암시적으로 long-distance dependencies를 모델링할 수 있기 때문에, graph structures가 BERT와 같은 사전 교육 언어 모델에 도움이 되는지 여부는 불분명하다. 그래프 구조를 도입하지 않고도 사전 교육 언어 모델을 직접 적용할 수 있는 접근 방식도 있었다. 단순히 엔티티 토큰의 embedding을 평균하여 entity embeddings을 얻고 이를 classifier에 입력하여 relation labels을 가져온다. 그러나, 각 엔티티는 서로 다른 엔티티 쌍에서 같은 representation을 가지므로, 관련없는 context에서 noise가 발생할 수 있다.
 
   이 논문에서 graph structures를 사용하는 대신, localized context pooling를 제안하고 있다. 이 기술은 모든 엔티티 쌍에 대해 동일한 엔티티 임베딩 사용 문제를 해결한다. 이는 현재 엔티티 쌍과 관련된 추가 컨텍스트와 함께 entity embedding을 향상시킨다. 새로운 context attention layer를 처음부터 교육하는 대신, pre-trained language models에서 attention heads를 직접 전송(transfer)하여 entity-level attention를 얻는다. 그런 다음 쌍으로 구성된 두 엔티티에 대해, 곱셈(multiplication)을 통해 그들의 attention을 합쳐 해당 엔티티 모두의 중요한 컨텍스트를 찾는다.
 
