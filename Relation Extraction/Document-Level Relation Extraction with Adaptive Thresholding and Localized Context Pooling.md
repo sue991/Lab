@@ -47,7 +47,7 @@ document d = [x_t]^l_{t=1}이 주어졌을 때, mentions의 시작과 끝에 특
 $$
 H = [h_1,h_2,...,h_l] = BERT([x_1,x_2,...,x_l])
 $$
-이전 연구에 따르면, document는 인코더에 의해 한 번 인코딩되며, 모든 엔티티 쌍의 classification은 동일한 컨텍스트 임베딩을 기반으로 한다. mention의 시작에 있는 "*" embedding을 mention embeddings로 간주한다. mentions {mij}^N_{j=1} 에서 한 엔티티 ei의 경우, maxpooling의 smooth 버전인 logsumexp pooling을 적용하고, entity embedding h_ei를 얻는다.
+이전 연구에 따르면, document는 인코더에 의해 한 번 인코딩되며, 모든 엔티티 쌍의 classification은 동일한 컨텍스트 임베딩을 기반으로 한다. mention의 시작에 있는 "*" embedding을 mention embeddings로 간주한다. mentions {mij}^N_{j=1} 에서 엔티티 ei의 경우, maxpooling의 smooth 버전인 logsumexp pooling을 적용하고, entity embedding h_ei를 얻는다.
 $$
 h_{e_i} = log\sum^{N_{e_i}}_{j=1}exp\Big(h_{m^i_j}\Big)
 $$
@@ -59,7 +59,7 @@ $$
 $$
 z_s = tanh(W_sh_{e_s}), \\ 
 z_o = tanh(W_oh_{e_o}), \\
-P(r|e_s,e_o) = \sigma(z^\intercal_sW_rz_o /= b_r), \\
+P(r|e_s,e_o) = \sigma(z^\intercal_sW_rz_o + b_r), \\
 \mbox{model parameters : } W_s ∈ R^{d*d} , W_o ∈ R^{d*d}, W_r ∈ R^{d*d}, b_r ∈ R
 $$
 한 엔티티의 representation은 서로 다른 엔티티 쌍 간에 동일하다. Bilinear classifier에 있는 파라미터 수를 줄이기 위해, group bilinear를 사용하는데, 이것은 embedding dimensions를 k개의 동일한 크기의 그룹으로 나누고 그룹 내에서 bilinear를 적용한다.
@@ -72,7 +72,7 @@ P(r|e_s,e_o) : \mbox{relation r이 entity pair }(e_s,e_o) \mbox{ 와 관련된 �
 $$
 이 방법으로, 파라미터 수를 d^2에서 d^2/k로 줄일 수 있다. 우리는 트레이닝하는데  binary cross entropy loss를 사용한다. inference중에는 dev set의 evaluation metrics(RE의 경우 F1 score)를 최대화하는 global threshold θ를 조정하고 P(r|es,eo) > θ일 경우 관련된 relation으로 r을 리턴하거나, relation이 없을 경우 NA를 리턴한다.
 
-  NAT의 향상된 기본 모델은 실험에서 기존 BERT 기준선을 훨씬 능가하는 거의 최신 성능을 달성한다.
+ 우리의 향상된 기본 모델은 실험에서 기존 BERT 기준선을 훨씬 능가하는 거의 최신 성능을 달성한다.
 
 ## Adaptive Thresholding
 
@@ -80,10 +80,10 @@ RE Classifier는 relation labels로 변환되어야 하는 [0, 1] 범위 내의 
 
   설명의 편의를 위해 엔티티 쌍 의 라벨 T = (es, eo) 을 positive classes PT와 negative classes NT의 두 subsets으로 나누어 다음과 같이 정의하였다:
 
-- positive classes PT ⊆ R은 T에 있는 엔티티 사이에 존재한다. 만약 T가 어느 relation에도 존재하지 않으면, PT는 empty이다.
-- negatice classes NT ⊆ R은 엔티티 사이에 존재하지 않은 relation이다. 만약 T가 어느 relation에도 표현되지 않으면, NT = R 이다.
+- positive classes PT ⊆ R은 T에 있는 엔티티 사이에 존재하는 relation이다. 만약 T가 어느 relation에도 존재하지 않으면, PT는 empty이다.
+- negative classes NT ⊆ R은 엔티티 사이에 존재하지 않은 relation이다. 만약 T가 어느 relation에도 표현되지 않으면, NT = R 이다.
 
-만약 한 엔티티 쌍이 맞게 분류된다면, positive class의 logit이 thresdhold보다 반드시 높아야하고, 반면에 negative class의 logit은 낮아야 한다. 여기서는 threshold class TH가 있다. 이 값은 다른 클래스와 동일한 방식으로 자동으로 학습된다. 테스트 시 TH 클래스보다 로짓이 높은 클래스를 positive classes로 반환하거나, 해당 클래스가 없는 경우 NA를 반환한다. 이 threshold class는 entities-dependent threshold value를 학습한다. 이것은 global threshold을 대체하므로 dev set에서 threshold를 조정할 필요가 없다. 
+만약 한 엔티티 쌍이 맞게 분류된다면, positive class의 logit이 threshold보다 반드시 높아야하고, 반면에 negative class의 logit은 낮아야 한다. 여기서는 threshold class TH가 있다. 이 값은 다른 클래스와 동일한 방식으로 자동으로 학습된다. 테스트 시 TH 클래스보다 로짓이 높은 클래스를 positive classes로 반환하거나, 해당 클래스가 없는 경우 NA를 반환한다. 이 threshold class는 entities-dependent threshold value를 학습한다. 이것은 global threshold을 대체하므로 dev set에서 threshold를 조정할 필요가 없다. 
 
   새로운 모델을 배우기 위해서는 TH 클래스를 고려한 특별한 loss function이 필요하다. 우리는 standard categorical cross entropy loss을 기반으로 adaptive-thresholding loss을 설계한다.  loss function은 아래와 같이 두 부분으로 나뉜다.
 $$
@@ -116,8 +116,8 @@ H : \mbox{ contextual embedding }
 $$
 Localized context embedding은 원래 linear layer Eq.3 , Eq.4를 다음과 같이 수정하여 서로 다른 엔티티 쌍에 대해 서로 다른 엔티티 representation을 얻기 위해 globally pooled entity embedding으로 융합된다.
 $$
-z_s^{(s,o)} = \tanh(W_sh_{e_s} + W_{c_1}c^{(s,o)}, \\
-z_o^{(s,o)} = \tanh(W_oh_{e_o} + W_{c_2}c^{(s,o)} \\
+z_s^{(s,o)} = \tanh(W_sh_{e_s} + W_{c_1}c^{(s,o)}), \\
+z_o^{(s,o)} = \tanh(W_oh_{e_o} + W_{c_2}c^{(s,o)}) \\
 W_{c_1}, W_{c_2} ∈ R^{d×d}  : \mbox{model parameters}
 $$
 제안된  localized context pooling은 Figure 3에 나와 있다.
@@ -138,7 +138,7 @@ $$
 
 ### Experiment Settings
 
-당사의 모델은 Hugghingface의 Transformer를 기반으로 구현되었다. 우리는 DocRED의 인코더로 케이스 BERT-base 또는 Roberta-large를 사용하고 CDR과 GDA의 케이스 SciBERT를 사용한다. 우리는 Apex library를 기반으로 한 mixed-precision training을 사용한다. 이 모델은 learning rates ∈ {2e−5, 3e−5, 5e−5, 1e−4} 를 사용하는 AdamW에 최족화되었고, 처음 6% steps동안 linear warmup을 수행한 후 0으로 linear decay (선형적으로 감소) 한다. 우리는 레이어 사이 dropout을 0.1로 지정하고, 모델 파라미터의 gradients를 max norm of 1.0로 클리핑한다.  dev set 의 F1 score를 기준으로 early stopping을 수행한다. 모든 hyper-parameter는 dev set에서 조정된다. 몇몇 hyper parameters를 Table 2에서 볼 수 있다.
+우리의 모델은 Huggingface의 Transformer를 기반으로 구현되었다. 우리는 DocRED에서 인코더로 케이스 BERT-base 또는 Roberta-large를 사용하고, CDR과 GDA의 케이스 SciBERT를 사용한다. 우리는 Apex library를 기반으로 한 mixed-precision training을 사용한다. 이 모델은 learning rates ∈ {2e−5, 3e−5, 5e−5, 1e−4} 를 사용하는 AdamW에 최적화되었고, 처음 6% steps동안 linear warmup을 수행한 후 0으로 linear decay (선형적으로 감소) 한다. 우리는 레이어 사이 dropout을 0.1로 지정하고, 모델 파라미터의 gradients를 max norm of 1.0로 클리핑한다.  dev set 의 F1 score를 기준으로 early stopping을 수행한다. 모든 hyper-parameter는 dev set에서 조정된다. 몇몇 hyper parameters를 Table 2에서 볼 수 있다.
 
 <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.00.16 PM.png" alt="Screen Shot 2021-07-13 at 7.00.16 PM" style="zoom:50%;" />
 
@@ -156,7 +156,7 @@ Yao et al. (2019)에 따르면, 평가에 F1과 Ign F1을 사용한다.  Ign F1�
 
 **Sequence-based Models.** 이 모델은 CNN과 BiLSTM과 같은 neural architectures를 사용하여 전체 문서를 인코딩한 다음 엔티티 임베딩을 얻고 bilinear function이 있는 각 엔티티 쌍의 relation을 예측한다.
 
-**Graph-based Models.**  이러한 모델은 latent graph structures를 학습하여 문서 그라프를 작성하고 graph convolutional network로 inference를 수행한다. 우리는 두개의 최신 모델인 AGGCN와 LSR를 비교를 위해 포함한다. AGGCN의 결과는 Nan et al. (2020)에 의한 재실행에서 비롯되었다.
+**Graph-based Models.**  이러한 모델은 latent graph structures를 학습하여 문서 그래프를 작성하고 graph convolutional network로 inference를 수행한다. 우리는 두개의 최신 모델인 AGGCN와 LSR를 비교를 위해 포함한다. AGGCN의 결과는 Nan et al. (2020)에 의한 재실행에서 비롯되었다.
 
 **Transformer-based Models.** 이러한 모델은 그래프 구조를 사용하지 않고 사전 교육된 언어 모델을 문서 레벨 RE에 직접 적용한다. 또한 pipeline models(BERT-TS (Wang et al. 2019a)), hierarchical models(HIN-BERT (Tang et al. 2020a) 및 pre-training methods (CorefBERT 및 RoBERTa (Ye. 2020a))으로 더 나눌 수 있다. 또한 BERT 기준선(Wang et al. 2019a)과 재구축된 BERT 기준선을 비교해서 포함한다.
 
@@ -166,11 +166,11 @@ Yao et al. (2019)에 따르면, 평가에 F1과 Ign F1을 사용한다.  Ign F1�
 
 제안된 기술의 효과를 보여주기 위해 한 번에 한 구성 요소를 꺼서 ATLOP와 향상된 기준선에 대해 두 세트의 ablation studies를 수행한다. 모든 구성 요소가 모델 성능에 영향을 미친다는 것을 관찰했다. Adaptive thresholding과 localized context pooling은 모두 성능을 모델링하는 데 중요하므로 ATLOP에서 제거하면 개발 F1 점수가 각각 0.89%와 0.97% 하락한다. Adaptive thresholding은 모델이 adaptive thresholding loss로 최적화되었을 때만 작동한다. binary cross entropy로 교육된 모델에 adaptive thresholding을 적용하면 dev F1이 41.74%로 산출된다.
 
-  우리의 향상된 기준선 모델 BERT-EBASE의 경우 group bilinear와 logsumexp pooling 모두 dev F1을 약 1% 증가시킨다.  entity markers의 개선은 미미하지만(dev F1의 경우 0.24%) mention embedding 및 mention-level attention를 더 쉽게 유도할 수 있기 때문에 모델에 이 기법을 사용한다.
+  우리의 향상된 기준선 모델 BERT-E_BASE의 경우 group bilinear와 logsumexp pooling 모두 dev F1을 약 1% 증가시킨다.  entity markers의 개선은 미미하지만(dev F1의 경우 0.24%) mention embedding 및 mention-level attention를 더 쉽게 유도할 수 있기 때문에 모델에 이 기법을 사용한다.
 
 ### Analysis of Thresholding
 
-Global thresholding은 서로 다른 클래스 또는 인스턴스에서 모델 confidence의 변동을 고려하지 않으므로 성능이 최적화되지 않습니다. 한 가지 흥미로운 질문은 클래스별로 서로 다른 임계값을 조정하여 글로벌 임계값을 개선할 수 있는지 여부이다. 이 질문에 답변하기 위해, 우리는 서로 다른 클래스에 대해 서로 다른 임계값을 조정하여  cyclic optimization algorithm(Fan 및 Lin 2007)을 사용하여 DocRED의 dev F1 점수를 최대화하려고 한다. 결과는 Table 6에 보여진다. 
+Global thresholding은 서로 다른 클래스 또는 인스턴스에서 모델 confidence의 변동을 고려하지 않으므로 성능이 최적화되지 않는다. 한 가지 흥미로운 질문은 클래스별로 서로 다른 임계값을 조정하여 글로벌 임계값을 개선할 수 있는지 여부이다. 이 질문에 답변하기 위해, 우리는 서로 다른 클래스에 대해 서로 다른 임계값을 조정하여  cyclic optimization algorithm(Fan 및 Lin 2007)을 사용하여 DocRED의 dev F1 점수를 최대화하려고 한다. 결과는 Table 6에 보여진다. 
 
 <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-13 at 7.43.15 PM.png" alt="Screen Shot 2021-07-13 at 7.43.15 PM" style="zoom:50%;" />
 
