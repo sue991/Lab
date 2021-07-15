@@ -47,7 +47,7 @@ document d = [x_t]^l_{t=1}이 주어졌을 때, mentions의 시작과 끝에 특
 $$
 H = [h_1,h_2,...,h_l] = BERT([x_1,x_2,...,x_l])
 $$
-이전 연구에 따르면, document는 인코더에 의해 한 번 인코딩되며, 모든 엔티티 쌍의 classification는 동일한 컨텍스트 임베딩을 기반으로 한다. mention의 시작에 있는 "*" embedding을 mention embeddings로 간주한다. 한 mentions {mij}^N_{j=1} 에서 엔티티 ei의 경우, maxpooling의 smooth 버전인 logsumexp pooling을 적용하고, entity embedding h_ei를 얻는다.
+이전 연구에 따르면, document는 인코더에 의해 한 번 인코딩되며, 모든 엔티티 쌍의 classification은 동일한 컨텍스트 임베딩을 기반으로 한다. mention의 시작에 있는 "*" embedding을 mention embeddings로 간주한다. mentions {mij}^N_{j=1} 에서 한 엔티티 ei의 경우, maxpooling의 smooth 버전인 logsumexp pooling을 적용하고, entity embedding h_ei를 얻는다.
 $$
 h_{e_i} = log\sum^{N_{e_i}}_{j=1}exp\Big(h_{m^i_j}\Big)
 $$
