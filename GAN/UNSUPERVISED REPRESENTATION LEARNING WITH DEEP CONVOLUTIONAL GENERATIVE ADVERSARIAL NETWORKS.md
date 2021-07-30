@@ -51,5 +51,71 @@ Non-parametric models는 종종 기존 이미지의 데이터베이스에서 mat
 
 ### 안정적인 Deep Convolution GANs를 위한 Architecture guidelines
 
+- Pooling layer를 strided convolution (discriminator)과 fractional-strided convolution(generator)으로 교체한다. 
+- Generator와 discriminator에 batchnorm을 사용한다.
+- 더 깊은 아키텍처를 위해 fully connected hidden layer를 없앤다.
+- Generator에서 Tanh를 사용하는 output layer를 제외한 모든 layer에서 ReLU activation을 사용한다.
+- Discriminator의 모든 레이어에서 LeakyReLU activation을 사용한다.
 
+## DETAILS OF ADVERSARIAL TRAINING
+
+  우리는 DCGANs을  Large-scale Scene Understanding (LSUN), Imagenet-1k 그리고 newly assembled Faces dataset 총 3개의 데이터셋에서 학습했다. 각 데이터셋의 자세한 사용은 밑에 나와있다.
+
+  Tanh activation function의 범위 [-1, 1] 에 대한 스케일링 외에 training images에 대한 전처리(pre-processing)은 적용되지 않았다. 모든 모델은 mini-batch stochastic gradient descent (SGD)를 이용해서 학습되었으며, 128의 mini-batch를 사용했다. 모든 weights는 standard deviation 0.02를 가지는 zero-centered normal distribution으로부터 초기화(initialized) 되었다. LeakyReLU에서, leak의 slope는 모든 모델에서 0.2로 설정되었다. 이전 GAN 연구에서는 training을 가속화하기 위해 momentum을 사용하였으나, 우리는 튜닝된 hyper parameters를 가지고 Adam optimizer를 사용했다.  우리는 제안된 learning rate 0.001이 너무 높다는 것을 알았고, 대신 0.0002를 사용했다.  추가적으로, momentum term β1의 제안된 값 0.9가 training oscillation과 불안정을 야기하여 학습을 안정화시키고자 0.5로 줄였다.
+
+### 1. LSUN
+
+  generative image models의 샘플의 시각적 품질이 향상됨에 따라 training sample의  over-fitting 및 memorization에 대한 우려가 높아졌다. 우리의 모델은 더 많은 데이터와 더 높은 해상도의 생성으로 확장되는 방법을 보여주기 위해 300만개가 조금 넘는 교육 사례를 포함하는 LSUN bedrooms dataset에 대한 모델을 교육한다. 최근 분석 결과는 모델의 학습 속도와 일반화 성능(generalization performance) 사이에는 직접적인 연관이 있다는 것을 보여준다. Convergence 후 샘플(Fig.3)뿐만 아니라 online learning을 모방한 한  epoch의 sample(Fig. 2)을 보여 주며, 우리의 모델이 단순히 overfitting/memorizing training 예를 통해 고품질 샘플을 생산하지 않음을 입증할 수 있는 기회로 삼았다. 이미지에는 data augmentation이 적용되지 않았다.
+
+### 1.1 DEUDUPLICATION
+
+  generator가  input examples(Fig. 2)를 암기할 가능성을 더욱 줄이기 위해 간단한 이미지  de-duplication process를 수행한다. 우리는 training examples의 다운샘플링된 center-crops 32x32에 3072-128-3072 de-noising dropout regularized RELU autoencoder를 장착한다. 그 결과 발생하는 코드  layer activations는 효과적인 information preserving technique(Srivastava et al., 2014)인 ReLU activation thresholding을 통해 이진화되며, linear time de-duplication를 허용하는 편리한 형태의 semantic-hashing을 제공한다. hash collisions에 대한 육안 검사에서 estimated false positive rate가 100분의 1 미만인 높은 precision를 보였다. 추가적으로, 이 기법은 duplicates에 가까운 약 275,000개를 감지하고 제거하여 높은 recall을 제안했다.
+
+### 2. FACES
+
+우리는 사람 이름들의 임의의 웹 이미지 쿼리에서 사람의 얼굴을 포함한 이미지들을 스크랩했다. 그 사람들의 이름은 근대에 태어났다는 기준을 가지고 dbpedia에서 따온 것이다. 이 데이터 세트에는 10K명의 3M개의 이미지가 포함되어 있다. 이러한 이미지에서 OpenCV face detector를 실행하고 충분히 고해상도인 detections를 유지하여 약 350,000개의 face boxes를 제공한다. 우리는 이 faces boxes를 트레이닝에 사용한다. 이미지에는 data augmentation이 적용되지 않았다.
+
+### 3. IMAGENET -1K
+
+우리는 unsupervised training을 위한 natural images로써 Imagenet-1k를 사용했다. 우리는 32 x 32 min-resized center crops에 대해 훈련한다. 이미지에는 data augmentation이 적용되지 않았다.
+
+## EMPIRICAL VALIDATION OF DCGANS CAPABILITIES
+
+### 1. CLASSIFYING CIFAR-10 USING GANS AS A FEATURE EXTRACTOR
+
+  Unsupervised representation learning algorithms의 퀄리티를 평가하기 위한 한 방법은 supervised datasets에 이를 feature extractor로 적용하는 것이고 이 features의 top에 linear models를 fitting 시켜 성능을 평가하는 것이다.
+
+  CIFAR-10 데이터셋에서, feature learning algorithm으로 K-means를 활용하는 single layer feature extraction pipeline으로부터 매우 강력한 baseline performance가 검증되었다. 매우 많은 양의 feature maps(4800)을 사용할 경우 이 기술은 80.6%의 정확도를 달성한다. 기본 알고리즘을 unsupervised multi-layered로 확장하면 82.0%의 정확도를 달성했다. Supervised tasks를 위해 DCGANs에 의해서 학습된 representation의 퀄리티를 평가하기 위해 DCGAN을 Imagenet-1k에 학습하고 discriminator의 모든 layer에서 나온 convolutional feature를 사용하였으며 4x4 spatial grid를 만들기 위해서 각 layer의 representation을 max-pooling 했다. 이 feature들을 flatten 하고 이를 concatenate 해서 28672차원의 벡터를 만든 다음 이에 대해서 regularized linear L2-SVM classifier를 학습시킨다. 이는 82.8% accuracy를 달성했으며, 모든 K-means 기반 접근법보다 더 좋은 성능을 달성했다. 특히 discriminator는 K-means 기반의 기법과 비교했을 때 훨씬 적은 feature map을 가지지만 (가장 높은 layer에서 512개) 4x4 spatial locations의 많은 layer 때문에 더 큰 전체 feature vector size를 갖게 된다. DCGAN의 성능은 여전히 normal discriminative CNN을 감독되지 않는 방식으로 훈련시켜 소스 데이터셋에서 특별히 선택되고, 공격적으로 증강된 샘플 샘플을 구별하는 기술인 Campleanar CNNs(Dosvitski et al., 2015)보다 낮다.  Discriminator의 representations을 미세하게 조정함으로써 더 많은 개선이 이루어질 수 있지만, 우리는 이것을 향후 작업에 남겨두고 있다. 또한, DCGAN은 CIFAR-10에 대해 교육을 받은 적이 없기 때문에 이 실험은 학습된 기능의 domain robustness을 보여준다. 
+
+### 2. CLASSIFYING SVHN DIGITS USING GANS AS A FEATURE EXTRACTOR
+
+  SVHN(StreetView House Numbers) 데이터셋(Netzer 등, 2011)에서는 레이블이 지정된 데이터가 부족한 경우 DCGAN의 discriminator의 features를 supervised purposes으로 사용한다. CIFAR-10 실험에서와 유사한 데이터 집합 준비 규칙을 따라 non-extra set에서 10,000개의 예제로 구성된 validation set를 분리하여 모든 hyperparameter and model selection에 사용한다. 1000개의 균일 분포 training examples를 무작위로 선택하여 CIFAR-10에 사용된 것과 동일한 기능 추출 파이프라인 위에서 regularized linear L2-SVM classifier를 교육하는 데 사용한다. 이는 test error 22.48%로 최신 기술(1000개의 레이블을 사용한 classification)을 달성하여 unlabled data를 활용하도록 설계된 CNN의 또 다른 수정 사항을 개선한다. 추가적으로, DCGAN에 사용된 CNN 아키텍처가 동일한 데이터에 동일한 아키텍처를 가진 purely supervised CNN을 교육하고 64개 hyperparameter trials에 대한 무작위 검색을 통해 이 모델을 최적화함으로써 모델의 성능에 핵심적인 기여 요소가 아님을 검증한다. Validation error는 28.87%로 상당히 높다. 
+
+## INVESTIGATING AND VISUALIZING THE INTERNALS OF THE NETWORKS
+
+  우리는 다양한 방법으로 훈련된 generators와 discriminators를 살펴보았다. 우리는 training set에 대해 어떠한 종류의 nearest neighbor search를 하지 않았다. Pixel 또는 feature space에서 Nearest neighbors는 작은 이미지 변환에 의해 하찮게 속는다(?). 우리는 또한 모델을 정량적으로 평가하기 위해 log-likelihood metrics를 사용하지 않는데, 이는 안 좋은 metric이기 때문이다.
+
+### 1. WALKING IN THE LATENT SPACE
+
+ 우리가 한 첫 번째 실험은 latent space의 landscape를 이해하는 것이다. 학습된 manifold에서 걷는 것은 일반적으로 우리에게 memorization의 signs에 대해서 말해줄 수 있고 (만약 sharp transitions이 있는 경우) 공간이 계층적으로 collapsed 된 방법에 대해서도 말해줄 수 있다. 만약 latent space에서 걷는 것이 이미지 생성에 대해서 의미론적인 변화를 야기하는 경우(객체가 추가되거나 제거되는 것을 의미) 우리는 모델이 관련되어 있는 표현을 학습했고 흥미로운 표현을 학습했다고 추론할 수 있다. 결과는 Fig. 4에서 볼 수 있다.
+
+### 2. VISUALIZING THE DISCRIMINATOR FEATURES
+
+  이전 연구는 큰 이미지 데이터셋에 CNN을 supervised training 했을 때 매우 강력한 학습된 feature를 야기한다는 사실을 보였다. 추가적으로, scene classification에 학습된 supervised CNN은 object detectors를 학습한다. 우리는 large image dataset에 학습된 unsupervised DCGAN도 역시 흥미로운 특징의 계층을 학습할 수 있음을 보인다.
+
+Springenberg et al., 2014에 의해 제안된 guided backpropagation을 사용하면서, Fig.5에서 discriminator에 의해서 학습된 feature가 침대나 창문과 같은 bedroom의 특정한 부분에서 활성화된다는 것을 보였다. 비교를 위해서, 같은 이미지에서, 우리는 의미론적으로 관련이 있거나 흥미로운 어떤 것에 활성화되지 않은 임의로 초기화된 feature에 대한 baseline을 제공한다.
+
+### 3. MANIPULATING THE GENERATOR REPRESENTATION
+
+### 3.1 FORGETTING TO DRAW CERTAIN OBJECTS
+
+  Discriminator에 의해 학습된 표현에 더하여, generator가 학습한 표현이 무엇인지에 대한 질문이 있다. 샘플의 퀄리티는 generator가 베개, 창문, 램프, 문, 그리고 이것저것 다양한 가구와 같은 주요한 장면 요소에 대한 구체적인 object representation을 학습했음을 시사한다. 이러한 표현의 형태를 탐색하기 위해 generator에서 창문을 완전히 제거하는 실험을 수행했다. 
+
+  150개 sample에 대해, 52개의 창문 bounding box를 직접 그렸다. 두 번째로 높은 convolutino layer features에 대해, logistic regression은 bounding box 안쪽에 있는 activation은 positive로, 같은 이미지에서 랜덤한 샘플을 뽑아서 negative로 지정하는 기준을 사용해 feature activation이 window에 있는지 없는지를 예측하기 위해 fitting 되었다. 이 간단한 모델을 사용하여, 0보다 큰 weights를 가지는 모든 feature maps(총 200개)이 모든 spatial locations로부터 드랍되었다. 그러면, 임의의 새로운 샘플은 feature map을 제거하거나 제거하지 않고(feature map removal 있거나 없이) 생성된다.
+
+  Window dropout을 가지고 만들어진 이미지와 없이 만들어진 이미지는 Fig. 6에 나와있다. 그리고 흥미롭게도, 네트워크는 대개 bedroom에 window를 그리는 것을 까먹고, 이를 다른 object로 대체했다.
+
+### 3.2 VECTOR ARITHMETIC ON FACE SAMPLES
+
+  단어의 학습된 학습된 representation을 평가하는 맥락에서 (Mikolov etal., 2013) 단순한 산술 연산이 representation space에서 풍부한 linear structure를 나타낸다는 것이 검증되었다. 
 
