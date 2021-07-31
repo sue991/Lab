@@ -117,5 +117,13 @@ Springenberg et al., 2014에 의해 제안된 guided backpropagation을 사용�
 
 ### 3.2 VECTOR ARITHMETIC ON FACE SAMPLES
 
-  단어의 학습된 학습된 representation을 평가하는 맥락에서 (Mikolov etal., 2013) 단순한 산술 연산이 representation space에서 풍부한 linear structure를 나타낸다는 것이 검증되었다. 
+  단어의 학습된 학습된 representation을 평가하는 맥락에서 (Mikolov etal., 2013) 단순한 산술 연산이 representation space에서 풍부한 linear structure를 나타낸다는 것이 검증되었다. 하나의 표준이 되는 예시는  `vector("King") - vector("Man") + vector("Woman")`가 `Queen`을 의미하는 vector에 가장 가까운 vector를 야기한다는 사실을 나타낸다. 우리는 유사한 구조가 우리의 generator의 Z representation에서 나타나는지 아닌지를 조사했다. 우리는 시각적 개념에 대한 샘플 세트의 Z 벡터에 대해 유사한 산술을 수행했다. 개념 당 오직 하나의 샘플로 실험을 진행하는 것은 불안정(unstable)했으나, 3개의 예시에 대한 Z vector를 평균 내는 것은 의미론적으로 산수를 따르는 안정적이고 일관된 생성을 보여주었다. Fig. 7에 나타난 object manipulation에 더해서, 우리는 face pose 또한 Z space에서 선형적으로 모델링 될 수 있음을 검증하였다. (Fig. 8)
+
+  이러한 검증은 우리의 모델에 의해 학습된 Z representations을 사용하여 흥미로운 application이 개발될 수 있음을 제안한다. Conditional generative models이 scale, rotation, position과 같은 object attributes를 설득력있게 모델링하는 방법을 학습할 수 있음은 이전에 증명되었다. 이는 우리가 알기로 완전히 unsupervised models에서 이러한 현상이 발생한다는 것을 증명한 첫 번째 사례이다. 위에서 언급된 벡터 산수를 더 탐구하고 개발하는 것은 복잡한 이미지 분포의 conditional generative modeling에 필요한 데이터의 양을 극적으로 줄일 수 있다.
+
+## CONCLUSION AND FUTURE WORK
+
+  우리는 generative adversarial networks를 학습시키는 더욱 안정적인 아키텍처 set을 제안하였으며 adversarial networks가 generative modeling과 supervised learning을 위한 good image representation을 학습한다는 것에 대한 증거를 제시했다. 여전히 모델 불안정성의 몇 가지 형태가 남아 있으며 우리는 모델이 더 오래 학습할수록 그들이 때때로 filter의 subset을 하나의 oscillating mode로 붕괴된다는 것을 알고 있다. 
+
+  이후 연구는 이런 불안정성의 형태를 다룰 필요가 있다. 우리는 이 framework를 video (frame prediction을 위한)나 audio (speech synthesis를 위한 pre-trained feature)와 같은 다른 분야로 확장하는 것이 매우 흥미로울 것이라고 생각한다. 학습된 latent space에 대한 특성을 더 조사해보는 것 또한 흥미로울 것이다.
 
