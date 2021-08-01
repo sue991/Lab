@@ -6,7 +6,7 @@
 
 ## INTRODUCTION
 
-  레이블이 지정되지 않은 대규모 데이터셋에서 재사용 가능한 feature representations을 학습하는 것은 활발한 연구 영역이다. 컴퓨터 비전의 맥락에서, 라벨이 부착되지 않은 이미지와 동영상을 실질적으로 무제한으로 활용하여 좋은 중간 표현(intermediate representations)을 배울 수 있으며, 이미지 분류(image classification)와 같은 다양한 supervised learning에 사용할 수 있다. 좋은 image representations을 구축하는 한 가지 방법은 Generative Adversarial Networks(GANs)를 교육하고 나중에 제너레이터 및 discriminator 네트워크의 일부를 감독 작업을 위한 기능 추출기(feature extractors)로 재사용하는 것이라고 제안한다. GANs은 maximum likelihood techniques에 대한 매력적인 대안을 제공한다. 또한 그들의 learning process와 경험적 비용 함수(heuristic cost function)(ex: 픽셀 단위 independent mean-square error)가 없는 것이 representation learning에 매력적이라고 주장할 수 있다. GAN은 훈련하기에 불안정한 것으로 알려져 있으며, 종종 generator의 결과가 무의미한 output을 생산하는 경우가 있다. GANs이 학습하는 내용과 multi-layer GAN의 중간 표현(intermediate representations)을 이해하고 시각화하는 데 있어 발표된 연구는 매우 제한적이다.
+  레이블링이 되지 않은 대규모 데이터셋에서 재사용 가능한 feature representations을 학습하는 것은 활발한 연구 영역이다. 컴퓨터 비전의 맥락에서, 라벨이 부착되지 않은 이미지와 동영상을 실질적으로 무제한으로 활용하여 좋은 중간 표현(intermediate representations)을 배울 수 있으며, 이미지 분류(image classification)와 같은 다양한 supervised learning에 사용할 수 있다. 좋은 image representations을 구축하는 한 가지 방법은 Generative Adversarial Networks(GANs)를 교육하고 나중에 제너레이터 및 discriminator 네트워크의 일부를 감독 작업을 위한 기능 추출기(feature extractors)로 재사용하는 것이라고 제안한다. GANs은 maximum likelihood techniques에 대한 매력적인 대안을 제공한다. 또한 그들의 learning process와 경험적 비용 함수(heuristic cost function)(ex: 픽셀 단위 independent mean-square error)가 없는 것이 representation learning에 매력적이라고 주장할 수 있다. GAN은 훈련하기에 불안정한 것으로 알려져 있으며, 종종 generator의 결과가 무의미한 output을 생산하는 경우가 있다. GANs이 학습하는 내용과 multi-layer GAN의 중간 표현(intermediate representations)을 이해하고 시각화하는 데 있어 발표된 연구는 매우 제한적이다.
 
 이 논문의 contribution은 다음과 같다.
 
@@ -35,7 +35,7 @@ Non-parametric models는 종종 기존 이미지의 데이터베이스에서 mat
 
 ## APPROACH AND MODEL ARCHITECTURE
 
-이미지를 모델링 하기 위해 CNNs를 사용하여 GANs를 확장하려는 과거의 시도들은 성공적이지 않았다. 이는 이제 LAPGAN의 저자들이 보다 신뢰성 있게 모델링할 수 있는 저해상도 생성 이미지를 반복적으로 상향 조정하는 alternative approach를 개발하도록 동기 부여했다. 우리는 또한 supervised literature에서 일반적으로 사용되는 CNN 아키텍처를 사용하여 GAN을 스케일링하려는 시도에도 어려움을 겪었다. 그러나, 광범위한 모델 탐구 후에   우리는 많은 데이터셋에 대해서 안정적인 학습을 가져오는 아키텍처의 family를 확인하였으며 이는 더 높은 해상도와 더 깊은 생성 모델이 가능하도록 만들었다. 
+이미지를 모델링 하기 위해 CNNs를 사용하여 GANs를 확장하려는 과거의 시도들은 성공적이지 않았다. 이는 이제 LAPGAN의 저자들이 보다 신뢰성 있게 모델링할 수 있는 저해상도 생성 이미지를 반복적으로 상향 조정하는 alternative approach를 개발하도록 동기 부여했다. 우리는 또한 supervised literature에서 일반적으로 사용되는 CNN 아키텍처를 사용하여 GAN을 스케일링하려는 시도에도 어려움을 겪었다. 그러나, 광범위한 모델 탐구 후에 우리는 많은 데이터셋에 대해서 안정적인 학습을 가져오는 아키텍처의 family를 확인하였으며 이는 더 높은 해상도와 더 깊은 생성 모델이 가능하도록 만들었다. 
 
 우리의 접근법의 핵심은 CNN 아키텍처에 대한 3개의 최근 검증된 변화를 채택하고 수정하는 것이다.
 
@@ -65,11 +65,11 @@ Non-parametric models는 종종 기존 이미지의 데이터베이스에서 mat
 
 ### 1. LSUN
 
-  generative image models의 샘플의 시각적 품질이 향상됨에 따라 training sample의  over-fitting 및 memorization에 대한 우려가 높아졌다. 우리의 모델은 더 많은 데이터와 더 높은 해상도의 생성으로 확장되는 방법을 보여주기 위해 300만개가 조금 넘는 교육 사례를 포함하는 LSUN bedrooms dataset에 대한 모델을 교육한다. 최근 분석 결과는 모델의 학습 속도와 일반화 성능(generalization performance) 사이에는 직접적인 연관이 있다는 것을 보여준다. Convergence 후 샘플(Fig.3)뿐만 아니라 online learning을 모방한 한  epoch의 sample(Fig. 2)을 보여 주며, 우리의 모델이 단순히 overfitting/memorizing training 예를 통해 고품질 샘플을 생산하지 않음을 입증할 수 있는 기회로 삼았다. 이미지에는 data augmentation이 적용되지 않았다.
+  generative image models의 샘플의 시각적 품질이 향상됨에 따라 training sample의  over-fitting 및 memorization에 대한 우려가 높아졌다. 우리의 모델은 더 많은 데이터와 더 높은 해상도의 생성으로 확장되는 방법을 보여주기 위해 300만개가 조금 넘는 교육 사례를 포함하는 LSUN bedrooms dataset에 대한 모델을 교육한다. 최근 분석 결과는 모델의 학습 속도와 일반화 성능(generalization performance) 사이에는 직접적인 연관이 있다는 것을 보여준다. Convergence 후 샘플(Fig.3)뿐만 아니라 online learning을 모방한 한 epoch의 sample(Fig. 2)을 보여 주며, 우리의 모델이 단순히 overfitting/memorizing training 예를 통해 고품질 샘플을 생산하지 않음을 입증할 수 있는 기회로 삼았다. 이미지에는 data augmentation이 적용되지 않았다.
 
 ### 1.1 DEUDUPLICATION
 
-  generator가  input examples(Fig. 2)를 암기할 가능성을 더욱 줄이기 위해 간단한 이미지  de-duplication process를 수행한다. 우리는 training examples의 다운샘플링된 center-crops 32x32에 3072-128-3072 de-noising dropout regularized RELU autoencoder를 장착한다. 그 결과 발생하는 코드  layer activations는 효과적인 information preserving technique(Srivastava et al., 2014)인 ReLU activation thresholding을 통해 이진화되며, linear time de-duplication를 허용하는 편리한 형태의 semantic-hashing을 제공한다. hash collisions에 대한 육안 검사에서 estimated false positive rate가 100분의 1 미만인 높은 precision를 보였다. 추가적으로, 이 기법은 duplicates에 가까운 약 275,000개를 감지하고 제거하여 높은 recall을 제안했다.
+  generator가 input examples(Fig. 2)를 암기할 가능성을 더욱 줄이기 위해 간단한 이미지  de-duplication process를 수행한다. 우리는 training examples의 다운샘플링된 center-crops 32x32에 3072-128-3072 de-noising dropout regularized RELU autoencoder를 장착한다. 그 결과 발생하는 코드 layer activations는 효과적인 information preserving technique(Srivastava et al., 2014)인 ReLU activation thresholding을 통해 이진화되며, linear time de-duplication를 허용하는 편리한 형태의 semantic-hashing을 제공한다. hash collisions에 대한 육안 검사에서 estimated false positive rate가 100분의 1 미만인 높은 precision를 보였다. 추가적으로, 이 기법은 duplicates에 가까운 약 275,000개를 감지하고 제거하여 높은 recall을 제안했다.
 
 ### 2. FACES
 
