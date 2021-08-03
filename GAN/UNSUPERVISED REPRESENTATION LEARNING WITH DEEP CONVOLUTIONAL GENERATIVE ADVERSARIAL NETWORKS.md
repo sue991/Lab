@@ -41,7 +41,7 @@ Non-parametric models는 종종 기존 이미지의 데이터베이스에서 mat
 
   첫 번째는 maxpooling과 같은 deterministic spatial pooling functions를 strided convolutions으로 대체하는 모든 convolutional net은 네트워크가 이것 자체의 spatial downsampling을 학습하도록 허용한다는 것이다. 우리는 이 접근법을 generator에서 사용하였으며, 이는 우리의 spatial upsampling을 학습할 수 있도록 했고, discriminator에서도 사용한다.
 
-  두 번째는 convolutional features의 마지막 부분에서 fully connected layer를 제거하는   쪽으로의 트렌드이다. 가장 강력한 예는 최첨단 image classification models에서 활용된 global average pooling이다. 우리느 global average pooling이 모델 안정성을 증가시키지만 수렴 속도(convergence speed)를 해친다는 것을 발견했다. 가장 높은 convolutional features를 generator와 discriminator의 input과 output 각각 직접적으로 연결하는 중간 단계가 잘 작동했다. 균일한 noise distribution Z를 입력으로 사용하는 GAN의 첫 번째 레이어는 matrix multiplication에 불과하므로 fully connected라고 할 수 있지만, 결과는 4차원 tensor로 reshaped되어 convolution stack의 시작부분으로 사용된다. Discriminator의 경우 마지막 convolution layer가 flatten되고 다음 단일 sigmoid output으로 공급된다. 모델 아키텍처의 한 예시가 Fig. 1에 나와있다.
+  두 번째는 convolutional features의 마지막 부분에서 fully connected layer를 제거하는 쪽으로의 트렌드이다. 가장 강력한 예는 최첨단 image classification models에서 활용된 global average pooling이다. 우리느 global average pooling이 모델 안정성을 증가시키지만 수렴 속도(convergence speed)를 해친다는 것을 발견했다. 가장 높은 convolutional features를 generator와 discriminator의 input과 output 각각 직접적으로 연결하는 중간 단계가 잘 작동했다. 균일한 noise distribution Z를 입력으로 사용하는 GAN의 첫 번째 레이어는 matrix multiplication에 불과하므로 fully connected라고 할 수 있지만, 결과는 4차원 tensor로 reshaped되어 convolution stack의 시작부분으로 사용된다. Discriminator의 경우 마지막 convolution layer가 flatten되고 다음 단일 sigmoid output으로 공급된다. 모델 아키텍처의 한 예시가 Fig. 1에 나와있다.
 
 <img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-07-29 at 6.13.14 PM.png" alt="Screen Shot 2021-07-29 at 6.13.14 PM" style="zoom:50%;" />
 
