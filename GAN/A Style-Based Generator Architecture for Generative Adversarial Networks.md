@@ -158,4 +158,95 @@ Style에 따른 새로운 채널 별 통계는 후속 convolution operation에 �
 
 이러한 이미지를 생성할 때, synthesis network에서 무작위로 선택된 point에서 하나의 latent code 에서 다른 latent code(*style mixing*이라 하는 operation)으로 전환하면 된다.
 
-구체적으로, 
+구체적으로, 우리는 두 latent codes `z1,z2`를 mapping network를 통해 실행하고, 해당하는 `w1, w2`가 style을 제어하도록 하여 `w1`이 crossover point 앞에, `w2`가 이후에 적용되도록 한다.
+
+이 regularization 기술은 네트워크에서 인접한 style이 상관관계가 있다고 가정하는 것을 방지한다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-08-07 at 3.12.17 PM.png" alt="Screen Shot 2021-08-07 at 3.12.17 PM" style="zoom:50%;" />  
+
+  Table 2는 training 중에 mixing regularizationd을 활성화 하면 테스트 시 여러 latents가 혼합되는 시나리오에서 개선된 FIDs로 암시되는 localization이 얼마나 향상되는지를 보여준다.
+
+Figure 3은 다양한 scales에서 두 latent codes를 섞음으로써 합성된 이미지의 예시를 보여준다.
+
+우리는 각 styles의 subset이 이미지의 의미있는 높은 수준의 attribute를 제어한다는 것을 볼 수 있다.
+
+### 3.2. Stochastic variation
+
+  사람의 초상화에는 머리카락의 정확한 위치, stubble, 주근깨, 피부 모공 등 stochastic으로 볼 수 있는 여러 가지 측면이 있다.
+
+올바른 분포를 따르는 한 이미지에 대한 인식에 영향을 미치지 않고 임의로 이 모든 항목을 지정할 수 있다.
+
+  전통적인 generator가 어떻게 stochastic variation를 구현하는지 생각해 보자.
+
+네트워크에 대한 유일한 input이 input layer를 통과하는 경우, 네트워크는 필요할 때마다 이전 activations에서 공간적으로 다양한 pseudorandom numbers를 생성 할 수 있는 방법을 고안해야 한다.
+
+이는 네트워크 capacity를 소모하고 생성된 signal의 주기성(periodicity)을 숨기는 것이 어렵지만, 생성된 이미지에서 흔히 볼 수 있는 반복 배턴에서 나타나는 것처럼 항상 성공적인 것은 아니다.
+
+우리의 아키텍처는 각 convolution 후 픽셀 당 노이즈를 추가하여 이러한 문제를 모두 해결한다.
+
+![Screen Shot 2021-08-07 at 4.42.40 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-08-07 at 4.42.40 PM.png)
+
+  Figure 4는 같은 기분 이미지의 stochastic realizations을 보여주며, 다양한 noise realizations을 가진 우리의 generator를 사용하여 생산되었다.
+
+Noise가 stochastic aspects에만 영향을 미치고, 전체적인 구성과 정세성과 같은 높은 수준의 측면은 그대로 남겨진다는 것을 알 수 있다.
+
+![Screen Shot 2021-08-07 at 4.45.51 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-08-07 at 4.45.51 PM.png)
+
+Figure 5 는 layer의 다른 부분 집합에 stochastic variation을 적용하는 효과를 추가로 보여준다.
+
+  우리는 noise의 효과가 네트워크에 밀접하게 localized하게 나타난 다는 것이 흥미로웠다.
+
+우리는 generator의 어느 지점에서든 새로운 content를 가능한 한 빨리 도입해야 한다는 압력이 있으며, 네트워크가 stochastic variation을 만드는 가장 쉬운 방법은 제공된 noise에 의존하는 것 이라고 가정한다.
+
+모든 layer에 대해 새로운 noise set을 사용할 수 있으며, 따라서 초기 activations에서 stochastic effects을 발생시킬 인센티브가 없으므로  localized effect가 발생한다.
+
+### 3.3 Separation of global effects from stochasticity
+
+  이전 섹션과 함께 제공된 비디오는 스타일의 변경사항이 global effects(포즈, 정체성 변경 등)를 가지고 있지만 소음은 중요하지 않은 stochastic variation(다르게 빗은 머리카락, 수염 등)에만 영향을 미친다는 것을 보여준다. 
+
+이 관찰은 style transfer lliterature와 일치하는데, 여기서 공간적 invariant statistics(Gram matrix, channel-wise mean, vari- ance, etc)은 특정 instance를 인코딩하면서 이미지의 style을 안정적으로 인코딩한다.
+
+  우리의 style-based generator에서, 전체 feature maps은 동일한 값으로 scaled되고 biased되기 때문에 style은 전체 이미지에 영향을 미친다. 
+
+그러므로 포즈, 빛, 배경 스타일과 같은 global effects는 일관성있게 제어될 수 있다.
+
+한편, noise는 각 pixel에 독립적으로 추가되고 따라서 이상적으로 stochastic variation을 제어하는데 적합하다.
+
+만약 네트워크가 예를들어 포즈를 노이즈를 사용하여 제어하려고 하면, 공간적으로 일관되지 않은 decision이 발생하여 discriminator에 의해 불이익을 받게 된다.
+
+따라서 네트워크는 명시적인 지침 없이 global과 local 채널을 적절하게 사용하는 것을 학습한다.
+
+## Disentanglement studies
+
+  Disentanglement에 대한 다양한 정의가 있지만, 공통 목표는 각각 하나의 variation 요인을 제어하는 linear subspace로 구성된 latent space이다.
+
+그러나,  `Z`의 각 factor 조합의 sampling probability(표본 확률 추출)은 교육 데이터의 해당 밀도와 일치해야 한다. 
+
+![Screen Shot 2021-08-07 at 5.16.33 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-08-07 at 5.16.33 PM.png)
+
+Figure 6에 보여지는 것 처럼, 이는 factor가 일반적인 데이터 집합 및 input latent distribution과 완전히 불리되는 것을 방지한다.
+
+  우리의 generator 아키텍처의 주요 장점은 중간 latent space W가 *fixed* distribution에 따른 sampling을 지원할 필요가 없다는 것인데, 그 샘플링 밀도는 *learned* piecewise continuous mapping `f (z)`에 의해 유도된다.
+
+이 mapping 을 "unwarp" W에 맞게 조정하여 variation factor가 더 linear하게 되도록 할 수 있다.
+
+Entangled representation보다는 Disentangled representation에 기초한 사실적인 이미지를 생성하기가 더 쉬워야 하기 때문에 generator에 대한 압력이 있을 것으로 판단된다.
+
+따라서 우리는 unsupervised setting 에서 덜 entangled W를 산출할 것으로 예상한다. 즉, variation factor가 이전 연구 [10, 35, 49, 8, 26, 32, 7]에 알려져있지 않다.
+
+  불행하게도 disentanglement를 수량화 하는 최근 제안된 metrics는 input images를 latent codes에 매핑하는 encoder network가 필요하다.
+
+이러한 metrics는 우리의 baseline GAN이 encoder가 없기 때문에 우리의 목적에 적합하지 않다.
+
+이러한 목적으로 추가 네트워크를 추가할 수는 있지만, 실제 솔루션의 일부가 아닌 구성요소에 투자하는 일은 피하고 싶다.
+
+이를 위해 우리는 disentanglement를 정량화하는 두 가지 새로운 방법을 설명하며, 두 가지 방법 모두 인코더 또는 알려진 variation 요인이 필요하지 않으므로 모든 이미지 데이터 집합 및 generator에 대해 계산할 수 있다.
+
+### 4.1. Perceptual path length
+
+  Laine[37]에 의해 언급된 바와 같이,  latent-space 벡터의 interpolation은 이미지에 놀랄 만큼 비선형적인(non-linear한) 변화를 가져올 수 있다.
+
+예를 들어, 두 끝점 중 하나에 없는 features가 linear interpolation 경로 중간에 나타날 수 있다.
+
+이것은 latent space가 entangle하고 variation factors가 제대로 분리되지 않았다는 신호이다.
+
