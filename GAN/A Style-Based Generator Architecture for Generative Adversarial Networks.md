@@ -250,3 +250,43 @@ Entangled representation보다는 Disentangled representation에 기초한 사�
 
 이것은 latent space가 entangle하고 variation factors가 제대로 분리되지 않았다는 신호이다.
 
+이러한 효과를 정량화하기 위해 latent space에서 interpolation을 수행함에 따라 이미지가 얼마나 급격하게 변화하는지 측정할 수 있다.
+
+직관적으로, 덜 곡선인 잠재 공간(less curved latent space)이 매우 곡선인 잠재 공간(highly curved latent space)보다 지각적으로 부드러운 전환이 이루어져야 한다.
+
+metric의 기준으로, 우리는 두 VGG16 임베딩 사이의 weighted 차이로 계산되는 perceptually-based pairwise image distance를 사용하는데, 여기서 metrics가 인간의 perceptual similarity judgments와 일치하도록 가중치가 적합된다.
+
+Latent space interpolation path를 linear segments로 세분하면 image distance metric에서 보고한 대로 이 세그먼트 경로의 총 perceptual length를 각 세그먼트에 대한 perceptual differences의 합으로 정의할 수 있다.
+
+Perceptual path length에 대한 natural definition은 무한하게 미세한 subdivision에서의 합의 한계이지만, 실제로 작은 subdivision epsilon ε =10^{-4}를 사용한다.
+
+따라서 모든 가능한 끝점에 걸쳐 latent space Z의 평균 perceptual path length는 다음과 같다.
+$$
+ㅣ_Z = E\bigg[\frac{1}{ε^2}d(G(\mbox{slerp}(z_1,z_2; t)), G(\mbox{slerp}(z_1,z_2;t+ε))) \bigg] \\
+z_1, z_2 ~P(z), t~ U(0,1), G : \mbox{generator(style-based network를 위한 g ◦ f)} \\
+d(·, ·) : \mbox{결과 이미지 사이의 perceptual distance를 평가}
+$$
+slerp :  우리의 normalized input latent spaces에서 interpolating하는 가장 적합한 방법인 pherical interpolation.
+
+배경 대신 얼굴 특징에 집중하기 위해, 쌍으로 구성된 이미지 메트릭을 평가하기 전에 생성된 이미지를 면만 포함하도록 자른다.
+
+Metric d가 quadratic 이라서, ε^2으로 나눈다. 우리는 10만 개의 샘플을 채취하여 예상치를 계산한다.
+
+W에서 average perceptual path length를 계산하는 것은 유사한 방식으로 수행된다.
+$$
+l_W = E\bigg[  \frac{1}{ε^2}d(g(\mbox{lerp}(f(z_1),f(z_2);t)),
+g(\mbox{lerp}(f(z_1),f(z_2);t+ε))
+) \bigg]
+$$
+다른점은 interpolation이 W 공간에서 일어난다는 것이다.
+
+W에 있는 vector가 어느 fashion에서도 normalized되지 않기 때문에, linear interpolation (lerp)을 사용한다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-08-09 at 11.21.07 AM.png" alt="Screen Shot 2021-08-09 at 11.21.07 AM" style="zoom:50%;" />
+
+  Table 3은 이 full-path length가 noise unput이 있는 style-based generator에 비해 상당히 짧다는 것을 보여주는데, 이는 W가 Z보다 더 linear하다는 것을 나타낸다.
+
+그러나, 이 측정은 사실 input latent space Z에 약간 치우쳐 있다.
+
+W가 실제로 Z의 "flattened" 매핑인 경우, input manifold에서 매핑된 점 사이에도 입력 다양체에 있지 않고, 따라서 제너레이터에 의해 잘못 재구성된 영역을 포함할 수 있지만, input latent space Z에는 정의상 그러한 영역이 없다.
+
