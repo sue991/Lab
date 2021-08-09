@@ -54,7 +54,7 @@ https://github.com/NVlabs/stylegan
 
 우리는 대신 입력 계층을 완전히 생략하고 학습된 상수에서 시작하여 이 설계에서 벗어난다(Fig. 1b 오른쪽). *(  **w**는 constant tensor가 이미지로 변환되는 과정에서 스타일을 입히는 역할을 수행함으로써 다양한 스타일의 이미지를 만들어낼 수 있다.)*
 
-Latent code **z**가 input latent space Z에 주어졌을 때, non-linear mapping network f : Z → W 는 먼저 **w** ∈ W (Fig. 1b 왼쪽)을 생산한다. *(style-based generator (b) 의 경우, z가 fully-connected layer로 구성된 mapping network을 거쳐 intermediate latent vector (w)로 먼저 변환된다. )*
+Latent code **z**가 input latent space Z에 주어졌을 때, non-linear mapping network f : Z → W 는 먼저 **w** ∈ W (Fig. 1b 왼쪽)을 생산한다. *(style-based generator (b) 의 경우, 가 fully-connected layer로 구성된 mapping network을 거쳐 intermediate latent vector (w)로 먼저 변환된다. )*
 
 단순하게, 두 space 모두 dim을 512로 설정하고 mapping *f*는 섹션 4.1에서 분석할 8-layer MLP를 사용하여 구현된다.
 
@@ -62,7 +62,7 @@ Latent code **z**가 input latent space Z에 주어졌을 때, non-linear mappin
 
 AdalIN operation은 다음과 같다.
 $$
-AdalIN(x_i,y) = y_{s,i} \frac{x_i μ(x_i)}{\sigma(x_i)} + y_{b,i} 
+AdalIN(x_i,y) = y_{s,i} \frac{x_i - μ(x_i)}{\sigma(x_i)} + y_{b,i} \\
 $$
 이때, feature map xi는 별도로 normalized된 다음, style **y** 의 해당 scalar compoments를 이용해 scaled 및 biaed된다.
 
