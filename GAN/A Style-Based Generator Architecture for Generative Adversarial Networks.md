@@ -74,7 +74,7 @@ $$
 
 더 일반적인 feature transform과 비교했을 때, AdaIN은 효율성과 간결한 표현 때문에 특히 우리 목적에 잘 맞는다.
 
-  마지막으로, explicit *noise inputs*을 도입하여 tochastic detail을 생성하기 위한 직접적인 수단으 generator에 제공한다.
+  마지막으로, explicit *noise inputs*을 도입하여 stochastic detail을 생성하기 위한 직접적인 수단을 generator에 제공한다.
 
 이는 관련없는 Gaussian noise로 구성된 single-channel images이며, synthesis network의 각 레이어에 전용 노이즈 이미지(dedicated noise image)를 제공한다.
 
