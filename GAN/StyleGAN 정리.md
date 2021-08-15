@@ -54,8 +54,6 @@ StyleGAN에서는 이러한 방식때문에 특징이 잘 분리되지 않는다
 
 W space에서 factor들은 더욱 linear한 성질을 가질 수 있다. 그래서 StyleGAN에서는 총 8개의 layer로 구성된 하나의 매핑 네트워크를 학습해서 이러한 매핑이 수월하게 수행될 수 있도록 만들었다.
 
-
-
 ### Adaptive instance Normalizetion (AdaIN)
 
 논문에서 하나의 이미지가 여러개의 semantic한 style 정보로 구성되는 형태로 이미지를 생성할 수 있도록 아키텍처를 구성했다.
