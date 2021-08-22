@@ -194,3 +194,6 @@ $$
 
 ### 3. Disagreement Penalty
 
+Distant supervision labels는 biased되었고 bias의 사이즈는 relation의 타입에 따라 다르다.
+
+게다가, 
