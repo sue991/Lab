@@ -196,4 +196,193 @@ $$
 
 Distant supervision labels는 biased되었고 bias의 사이즈는 relation의 타입에 따라 다르다.
 
-게다가, 
+게다가, bias는 text의 content뿐만 아니라 head와 tail entity의 타입과 같은 많은 다른 features에 따라 달라질 수 있다.
+
+따라서 우리는 head와 tail entity 가 위치한 context에 따라 labeling bias를 모델링하기 위해 효과적인 disagreement penalty를 사용할 것을 제안한다.
+
+**Distribution of inflations.**   우리는 labeling bias를 relation의 inflation을 사용하여 labeling bias를 측정한다. Relation type의 inflation은 DS Data와 HA Data의 text당 relation type의 평균 frequency의 비율이다.
+
+Inflations의 분포를 조사하기 위해, 우리는 DocRED data에 있는 96개의 relation types의 inflation을 계산했다.
+
+Kolmogorov-Smirnov (K-S) test (Massey Jr, 1951)가 관찰된 데이터가 주어진 확률 분포에서 추출되는지 여부를 결정하는 데 널리 사용되기 때문에, 이 분포를 사용하여 inflation의 최적의 분포를 찾았다.
+
+Inflation의 범위가 [0,∞)이기 때문에, [0,∞)에서 지원되는 4개의 확률분포(Log-normal, Weibull, chi-square 그리고 exponential distributions)의 p-values을 평가했다.
+
+게다가, 우리는 normal distribution을 baseline으로 포함한다.
+
+<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-08-22 at 11.07.19 PM.png" alt="Screen Shot 2021-08-22 at 11.07.19 PM" style="zoom:50%;" />
+
+Table 1은 DocRED Data에서 K-S test의 결과를 보여준다.
+
+Probability distribution이 data에 잘 맞는다면, 높은  p-value값을 가지는 것에 주목하자.
+
+Log-normal distribution이 가장 높은 p-value를 갖기 때문에, 이 분포는 5개의 probability distribution 중 가장 적합도가 높은 distribution이다.
+
+관찰 결과에 근거하여, 우리는 두 prediction networks의 output 사이에서 disagreement penalty를 모델링한다.
+
+**Modeling the disagreement penalty.**   우리는 maximum likelihood estimation에 근거한 disagreement penalty를 개발한다.  Xr을 pr_DS와 pr_HA의 비율을 나타내는 random variable이라고 가정하자.
+
+Inflation이 DS data와 HA data에서의 labels의 수의 비율이기 때문에, pr_DS/pr_HA 비율은 relation type `r`의 *conditional inflation*을 표현한다.
+
+따라서 Xr이  probability density function이 다음과 같은 log-normal distribution L(μr , σr2)을 따르는 것을 가정한다:
+$$
+f(x) = \frac{1}{x\sigma_r\sqrt{2\pi}}exp\bigg(-\frac{(\log x - μ_r)^2}{2\sigma^2_r}\bigg)
+$$
+Disagreement penalty L^{DS-HA}_{h,t}는 conditional inflation pr_DS/pr_HA의 negative log likelihood로 정의되는데, 이것은 Equation (2)에서 pDS/pHA을 대체한다:
+$$
+-\log f (p^{DS}_r/p_r^{HA}) = \frac{1}{2} \bigg( \frac{\log p_r^{DS} - \log p_r^{HA} - μ_r}{\sigma_r} \bigg)^2 + \log p^{DS}_r - \log p_r^{HA} + \log \sigma_r + \frac{\log2\pi}{2}
+$$
+log 2π/2가 contant이기 때문에, constant term없이 Equation (3)에서  disagreement penalty를 활용한다.
+
+만약 μr과 σr 값을 고정시킨다면, context마다 매우 다르기 때문에 우리는 효과적으로 conditional inflation을 평가할 수 없다.
+
+예를 들어, relation type `capital` 의 inflation이 매우 높을지라도, ‘is the capital city of’과 같은 특정한 구가 text에 나타나면 conditional inflation은 낮아야 한다.
+
+Contextual information을 고려하기 위해, 우리는 log-normal distribution L(μr, σr2)의 파라미터인 μr과 σr을 추정하기 위해 두 개의 추가적인 네트워크 μ-Net과 σ-Net을 사용한다.
+
+### 4. Parameter Networks
+
+파라미터 네트워크 μ-Net과 σ-Net은 벡터 `μ = [μ1, ..., μ|R|]` 과 `σ = [σ1, ..., σ|R|]`을 아웃풋하는데, 이것들은 r ∈ R의 conditional inflation을 표현하기 위한 log-normal distributions의 파라미터이다.
+
+μ-Net과 σ-Net은 모두 output activation function을 제외하고 예측 네트워크의 것과 동일한 구조를 가진다.
+
+Log-normal distribution L(μ, σ)의 경우, parameter μ양수 또는 음수일 수 있으며, σ는 항상 양수이다.
+
+따라서 우리는  hyperbolic tangent function과 softplus function을 μ-Net과 σ-Net 각각의 output activation function으로 사용한다.
+
+  예를 들어, 만약 original RE model의 prediction network는 bilinear layer와 output activation function으로 구성되었다면, 파라미터 벡터  μ ∈ R^|R|와 σ ∈ R^|R| 는 head entity vector h∈R^d와 tail entity vector t∈R^d 로 계산된다.
+$$
+μ = tanh(h^⊤W^μt + b^μ), \\ σ = softplus(h^⊤W^σt + b^σ) + ε,\\
+
+softplus(x) = log(1+e^x)
+$$
+ε는 극히 작은 σ_r 값이 손실 함수를 지배하지 못하도록 하는 sanity bound이고,
+
+W^μ ∈ R^{d×|R|×d} , W^σ ∈ R^{d×|R|×d}, b^μ ∈ R^|R| , b^σ ∈ R^|R|은 학습가능한 파라미터 이다.
+
+sanity bound ε은 0.0001로 설정하였다.
+
+### 5. Loss function
+
+Sentence-level relation extraction에서, categorical cross entropy loss를  prediction losses인 L^HA\_{h,t} 와 L^DS\_{h,t}로 사용한다.
+
+Label `⟨eh,r,et⟩`을 위해, Equations (1)과 (3)에서 다음과 같은 손실 함수를 구한다.
+$$
+L_{h,t} = I_{HA} · L^{HA}_{h,t} + (1-I_{HA}) · L^{DS}_{h,t} + \lambda·L^{DS-HA}_{h,t} \\
+= -I_{HA}·\log p^{HA}_r - (1-I_{HA}) \log p_r^{DS} + \lambda \bigg[ \frac{1}{2} \bigg( \frac{l_r-μ_r}{\sigma_r} \bigg)^2 + l_r + \log \sigma_r \bigg] \\
+
+l_r =\log p^{DS}_r − \log p^{HA}_r , I_{HA} : \mbox{HA data의 label이면 1, 아니면 0}
+$$
+
+### 6. Analysis of the Disagreement Penalty
+
+w_HA가 test에서 relation을 예측하는 HA-Net의 learnable parameter라고 하자.
+
+우리는 human annotated label과 distantly supervised label에 대한 w_HA에 관련하여 loss function의 gradients를 비교함으로써 disagreement lenalty의 효과를 조사한다,
+
+Label `⟨e_h ,r,e_t⟩` 에 대해,
+$$
+\phi_r = (\log (p^{DS}_r / p^{HA}_r) - μ_r)/\sigma^2_r \mbox{라고 하자.}
+$$
+만약 레이블이 human annotated이면, Equation (4)로부터 w_HA에 관한 loss L_{h,t}의 다음과 같은 gradient를 얻는다.
+$$
+∇ L_{h,t} = ∇L^{HA}_{h,t} + 0 + \lambda ∇L^{DS-HA}_{h,t} = -(1+\lambda(1+\phi_r)) \frac{1}{{p_r}^{HA}}∇p_r^{HA}
+$$
+반면, 만약 label이 distant supervision에 의해 annotated되었으면, gradient는 다음과 같다:
+$$
+∇L_{h,t} = 0+0+\lambda∇L^{DS-HA}_{h,t} = -\lambda(1+\phi_r)\frac{1}{p_r^{HA}}∇p_r^{HA}
+$$
+Equations (5) and (6)에 나온 두 gradients는 같은 `−∇p^HA`의 direction을 갖는다.
+
+이것은 human annotated label과 distantly supervised label이 각각 `1+λ(1+φr)`, `λ(1+φr)`로 교정된다는 점을 제외하고 *HA-Net training에 비슷한 영향을 미친다는 것을 의미한다.
+
+따라서, HA-Net은 disagreement penalty를 도입함으로써 human annotated labels뿐만 아니라 distantly supervised labels로부터 학습할 수 있다.
+
+Log-normal distribution L(μr,σr)은 head entity와 tail entity가 있는 주어진 문장에 대한 conditional inflation을 설명한다.
+
+만약 L(μr,σr) 의 median e^{μr}이 높은 값을 가지고 있다면, distantly supercised label은 false label이다.
+
+따라서, 우리는 distantly supervised label의 영향을 줄이기 위해 φr의 사이즈를 줄인다.
+
+반면에, median e^{μr}이 낮아진다면, φr의 사이즈는 적극적으로 distantly supervised label을 활용하기 위해 증가한다.
+
+### 7 Extension to Document-level Relation Extraction
+
+Document-level RE에서,  prediction losses L^{HA}와 L^{DS}로써 *binary* cross entropy를 사용한다.
+
+e_h,e_t의 entity pair 에서, R_{h,t}를 entities 사이의 relation types의 집합이라고 하자.
+
+Train에서, 우리는 document RE에서 다음과 같은 loss function을 사용한다:
+$$
+L_{h,t} = -I_{HA}\Bigg(\sum_{r\in R_{h,t}}{\log p_r^{HA}} + \sum_{r \in R/R_{h,t}}\log(1- p_r^{HA}) \Bigg) \\ - (1-I_{HA})\Bigg( \sum_{r\in R_{h,t}} \log p_r^{DS} + \sum_{r\in R/R_{h,t}} \log (1-p_r^{DS}) \Bigg) + \lambda \sum_{r \in R_{h,t}}\Bigg[ \frac{1}{2} \bigg( \frac{l_r-μ_r}{\sigma_r} \bigg)^2 + l_r + \log \sigma_r \Bigg] \\
+
+l_r = \log p_r^{DS}/p_r^{HA}, I_{HA} : \mbox{HA Data로부터 label이면 1, 아니면 0}
+$$
+우리는 위의 loss function에 대해 Section 3.6에서 보여준 것과 같은 property를 얻는다.
+
+Test에서, 우리는 만약 pr^{HA}가 dev set에서 조율된 threshold보다 크다면 모델이 triple`⟨e_h, r, e_t⟩`을 아웃풋한다고 간주한다.
+
+## Experiments
+
+(Ye et al., 2019)과 (Yao et al., 2019; Wang et al., 2019)의 실험 설정을 따라 문장 수준 및 문서 수준 RE에 대한 성능 연구를 실시했다.
+
+모든 모델은 PyTorch 와 V100 GPU에서 수행되고 훈련된다.
+
+우리는 *HA-Net* 과 *DS-Net*을 같은 initial parameter를 갖도록 initialized했다.
+
+구현을 포함한 자세한 실험 정보는 부록 A에서 확인할 수 있다.
+
+### 1. Experimental Settings
+
+**Dataset.**   KBP (Ling and Weld, 2012; Ellis, 2012) 와 NYT (Riedel et al., 2010; Hoffmann et al., 2011)이 sentence- level RE를 위한 데이터셋이고, DocRED가 document-level RE를 위한 데이터셋이다.
+
+데이터셋들의 통계는 Table 2에 요약되어있다. KBP와 NYT 가 HA train data를 가지고 있지 않기 때문에, HA train data의 20%를 HA test data로 사용한다.
+
+랜덤으로 KBP와 NYT의 train data의 10%를 dev data로 만들었다.
+
+DocRED의 test data의 ground truth가 공개되어 있지 않다는 것에 주목하자.
+
+그러나, 우리는 test data로부터 추출된 결과의 F1 score를 CodaLab에서 주최하는 DocRED competition에 제출하면 얻을 수 있다. (available at https://competitions.codalab.org/competitions/20717)
+
+우리는 dev data와 test data로부터 계산된 F1 scores를 기록한다.
+
+**Compared methods**   우리는 *DUAL*이라고 명시된 우리의 dual supervision framework를 최신 방법인 *BASet*과 *BAFix*와 비교한다.
+
+Sentence-level RE에서, 우리는 *DUAL*과 Doc-level RE에서 사용될 수 없고 multi-class classification에서만 이용가능한 두 추가적인 baselines인 *MaxThres*와 *EntThres*와 비교한다.
+
+*MaxThres*는 만일 maximum output probability가 threshold보다 작다면 `NA`를 아웃풋한다.
+
+비슷하게도, *EntThres*는 output probability distribution의 entropy가 threshold보다 크다면 `NA`를 아웃풋한다.
+
+**Used relation extraction models. **   *sentence-level RE*에서, 우리는 6개의 모델을 사용한다: * ***BiGRU***s* (Zhang et al., 2017), ***PaLSTM****s* (Zhang et al., 2017), ***BiLSTM****s* (Zhang et al., 2017), ***CNN****s* (Zeng et al., 2014), ***PCNN****s* (Zeng et al., 2015) and ***BERT****s* (Wang et al., 2019). On the other hand, for *document-level RE*, we used the five models: ***BERT****D* (Wang et al., 2019), ***CNN****D* (Zeng et al., 2014), ***LSTM****D* (Yao et al., 2019), ***BiLSTM****D* (Cai et al., 2016) and ***CA****D* (Sorokin and Gurevych, 2017).
+
+*CNND*, *BiLSTMD*  그리고 *CAD*는 원래 sentence-level RE에 제안되었고, 우리는 document-level RE의 적용에 사용한다.
+
+추가적으로, sigmoid 를 softmax로 output activation function을 바꿈으로써 *BERTD*를 sentence-level RE에 적용한다.
+
+### 2. Comparison with Existing Methods
+
+Dual supervision framework를 기존 방법과 비교한다.
+
+**Sentence-level RE.**    Table 3은 KBP와 NYT에서 relation extraction을 위한 F1 scores 를 보여준다.
+
+*DS-Only*와 *HA-Only*은 각각 distantly supervised와 human-annotated labels에 훈련된 original RE models를 표현한다. 
+
+*DUAL*은 *BiLSTMs*을 제외하고 모든 RE models에서 가장 높은 F1 scores를 보여준다.
+
+KBP와 NYT는 train data에 human-annotated labels 수가 적기 때문에 HA-Only는 DS-Only보다 F1 점수가 더 나쁘다.
+
+게다가 *DUAL* 은 적은 양의 human-annotated labels를 추가로 사용하여 DS에 비해 5%에서 40%로 F1 score의 향상시킨다.
+
+반면, 비교하는 방법인  *BAFix*, *BASet*, *MaxThres* and *EntThres*는 종종 *DS-Only* 랑 *HA-Only* 보다 낮은 성능을 보인다
+
+**Document-level RE.**   Table 4에서 DocRED에 대한 F1 score를 보여준다.
+
+DUAL은 모든 RE model 에서 *BASet*과 BAFix보다 높은 성능을 보여준다.
+
+특히, BERTd를 쓰는 dual framework의 F1 score는 BASet과 BAFix보다 22% 이상의 향상을 보여준다.
+
+DocRED가 큰 human-annotated train data를 가지고 있기 때문에, *HA-Only*는 *DS-Only*보다 좋은 성능을 보여준다.
+
+*BERT**D* and *CNN**D*을 위해, 기존 방법은 HA-Only와 비교했을 때 낮은 성능을 보여준다.
+
