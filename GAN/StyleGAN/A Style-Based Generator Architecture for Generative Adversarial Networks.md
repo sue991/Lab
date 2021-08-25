@@ -262,7 +262,7 @@ Perceptual path length에 대한 natural definition은 무한하게 미세한 su
 
 따라서 모든 가능한 끝점에 걸쳐 latent space Z의 평균 perceptual path length는 다음과 같다.
 $$
-ㅣ_Z = E\bigg[\frac{1}{ε^2}d(G(\mbox{slerp}(z_1,z_2; t)), G(\mbox{slerp}(z_1,z_2;t+ε))) \bigg] \\
+ㅣ_Z = E\bigg[\frac{1}{ε^2}d(G( \mbox{slerp}(z_1,z_2; t)), G(\mbox{slerp}(z_1,z_2;t+ε))) \bigg] \\
 z_1, z_2 ~P(z), t~ U(0,1), G : \mbox{generator(style-based network를 위한 g ◦ f)} \\
 d(·, ·) : \mbox{결과 이미지 사이의 perceptual distance를 평가}
 $$

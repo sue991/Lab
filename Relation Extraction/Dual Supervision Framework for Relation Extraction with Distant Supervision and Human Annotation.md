@@ -384,5 +384,22 @@ DUAL은 모든 RE model 에서 *BASet*과 BAFix보다 높은 성능을 보여준
 
 DocRED가 큰 human-annotated train data를 가지고 있기 때문에, *HA-Only*는 *DS-Only*보다 좋은 성능을 보여준다.
 
-*BERT**D* and *CNN**D*을 위해, 기존 방법은 HA-Only와 비교했을 때 낮은 성능을 보여준다.
+*BERT**D* and *CNN**D*에서, 기존 방법은 HA-Only와 비교했을 때 낮은 성능을 보여준다.
 
+이것은 라벨링 편향으로 인해 HA 데이터 외에 추가로 DA 데이터를 사용해도 정확도가 저하될 수 있음을 보여준다.
+
+한편, 우리는 DUAL을 적용하여 일관되고 현저한 개선을 성취하였다.
+
+본 문서의 나머지 부분에서는 이 실험에서 가장 큰 데이터 세트인 DocRED 데이터에 대한 자세한 성능 평가를 제공한다.
+
+DocRED의 test data에서, 지면 진실은 공개되지 않으며 DocRED 경기에서는 F1 점수만 획득할 수 있다.
+
+따라서 우리는 dev data에서만 자세한 성능 평가를 제공한다.
+
+**Inflationvs.accuracy.**   인플레이션이 관계추출의 정확성에 미치는 영향을 조사하기 위해 관계유형의 인플레이션을 기준으로 관계유형을 4개 그룹으로 나눈다.
+
+Figure 2에서, 우리는 각 그룹의 특징을 보여주고 BERTd model과 BiLSTMd model의 그룹에 의한 F1 scores를 찍었다.
+
+모든 방법은 인플레이션이 1에 가까울 때 F1 점수가 가장 높다.  (at the 2nd group).
+
+게다가, *DUAL*에 의한 F1 score의 향상
