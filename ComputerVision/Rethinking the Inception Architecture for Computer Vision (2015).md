@@ -269,4 +269,12 @@ $$
 $$
 이 된다.
 
-편의 상 example x에서 p and q를 독립적인 것으로 생각하자.
+편의 상 example x에서 p and q를 독립적인 것으로 생각하자. 학습 데이터의 loss는 cross entropy로 정의된다.
+$$
+l = -\sum ^K_{k=1} \log(p(k))q(k)
+$$
+이것을 최소화하는 것은 예상된 label의 log-likelihood를 최대화 하는 것과 같다. 이때 label은 ground-truth distribution q(k)에 따라 선택된다.
+
+Cross-entropy loss는 logins z_k에 대해 구별할 수 있으므로 deep models의 gradient training에 사용할 수 있다.
+
+Gradient
