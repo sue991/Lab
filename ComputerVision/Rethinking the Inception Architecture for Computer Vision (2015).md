@@ -277,4 +277,28 @@ $$
 
 Cross-entropy loss는 logins z_k에 대해 구별할 수 있으므로 deep models의 gradient training에 사용할 수 있다.
 
-Gradient
+Gradient 다음과 같은 간단한 폼을 따른다:
+$$
+\frac{∂ℓ}{∂z_k} = p(k) - q(k), \\
+\mbox{bounded in [-1,1]}
+$$
+  모든 k != y에 대해 q(y) = 1 및 q(k) = 0인 single ground-truth label y의 경우를 가정하자.
+
+이 경우에, cross entropy를 최소화하는 것은 correct label의 log-likelihood를 최대화하는것과 같다.
+
+Label y와 특정 예 x에서, log-likelihood는 q(k) = δk,y에서 최대화된다. 이때 δk,y는 Dirac delta인데, k = y 일때는 1이고 나머지 일때는 0이다.
+
+유한한 z_k에 대해 maximum을 달성 할 수는 없지만, zy≫zk,∀k≠y인 경우에는 maximum에 근접할 수 있다.
+
+> *즉, ground-truth label에 해당하는 logit이, 나머지 모든 logit들보다 훨씬 큰 경우에는 maximum log-likelihood에 근접할 수 있다.*
+
+그러나, 이 경우 두 문제가 생길 수 있다
+
+1. overfitting이 생길 수 있다 : 만약 모델이 각 학습 데이터를 ground-truth label에 모든 확률을 할당하도록 학습한다면, 일반화 성능을 보장할 수 없다.
+
+2. Largest logit과 나머지 logit 간의 차이가 매우 커지도록 유도된다.
+
+   > 이 특성이 [−1,1]의 값인 bounded gradient ∂ℓ/∂z_k 와 함께 쓰이게 되면 모델의 적응력을 감소시킨다.
+
+위 문제들의 원인을 직관적으로 유추해보면, 모델이 prediction에 대한 confidence를 너무 높게 갖기 때문에 발생하는 것으로 볼 수 있다.
+
