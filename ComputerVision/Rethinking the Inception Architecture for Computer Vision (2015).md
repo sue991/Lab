@@ -302,3 +302,7 @@ Label y와 특정 예 x에서, log-likelihood는 q(k) = δk,y에서 최대화된
 
 위 문제들의 원인을 직관적으로 유추해보면, 모델이 prediction에 대한 confidence를 너무 높게 갖기 때문에 발생하는 것으로 볼 수 있다.
 
+
+
+
+

@@ -23,7 +23,7 @@ GoogLeNet은 VGG19보다 좀 더 깊고, AlexNet(2012)보다 적은 파라미터
 
 ## Inception v1.
 
-![Screen Shot 2021-09-03 at 2.17.49 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-09-03 at 2.17.49 PM.png)
+![Screen Shot 2021-09-03 at 2.17.49 PM](/Users/sua/Desktop/Screen Shot 2021-09-03 at 2.17.49 PM.png)
 
 Conv 레이어를 앞서 설명한대로 sparse 하게 연결하면서 행렬 연산 자체는 dense 하게 처리하는 모델로 구성하였다.
 
@@ -50,7 +50,7 @@ GoogLeNet에 사용된 모듈은 1x1 컨볼루션이 포함된 (b) 모델이다.
 
 >Max-Pooling 의 경우 1x1 이 뒤에 있는 이유는 MaxPooling은 output C를 조절할 수 없기 때문에 사이즈를 맞추기 위함이다.
 
-![Screen Shot 2021-09-03 at 3.32.05 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-09-03 at 3.32.05 PM.png)
+![Screen Shot 2021-09-03 at 3.32.05 PM](/Users/sua/Desktop/Screen Shot 2021-09-03 at 3.32.05 PM.png)
 
 Conv 연산을 좀 더 작은 형태의 Conv 연산 조합으로 쪼갤 수 있다. 이렇게 하면 정확도는 올리고, 컴퓨팅 작업량은 줄일 수 있다.
 
@@ -64,7 +64,7 @@ Conv 연산을 좀 더 작은 형태의 Conv 연산 조합으로 쪼갤 수 있�
 
 전체 GooLeNet의 구조는 다음과 같다.
 
-<img src="/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-09-03 at 3.35.48 PM.png" alt="Screen Shot 2021-09-03 at 3.35.48 PM" style="zoom:50%;" />
+<img src="/Users/sua/Desktop/Screen Shot 2021-09-03 at 3.35.48 PM.png" alt="Screen Shot 2021-09-03 at 3.35.48 PM" style="zoom:50%;" />
 
 ## Global Average Pooling
 
