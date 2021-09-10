@@ -32,7 +32,7 @@ Train, test, val = 8 : 1 : 1 로 나뉘었다.
 
 **The ResNet model can simply classify colposcopy images into two categories.**
 
-분류 모델에서는 1개의 acetic image, 1개의 iodine image, 연령, HPV testing result, 세포학 결과(cytology result),  TZ type이 입력 지수로 사용되었다. Pathology diagnoses은 출력 지수로 사용되었다. 이 중 10,365건의 정상 사례, 6,357건의 LSIL 사례, 5,608건의 HSIL 사례가 8:1의 비율로 교육 세트, 테스트 세트 및 검증 세트로 비례적으로 구분되었다. 유효한 세트의 최종 결과는 표 1에 나와 있다.
+분류 모델에서는 1개의 acetic image, 1개의 iodine image, 연령, HPV testing result, 세포학 결과(cytology result),  TZ type이 입력 지수로 사용되었다. Pathology diagnoses은 출력 지수로 사용되었다. 이 중 10,365건의 정상 사례, 6,357건의 LSIL 사례, 5,608건의 HSIL 사례가 8:1:1의 비율로 교육 세트, 테스트 세트 및 검증 세트로 비례적으로 구분되었다. 유효한 세트의 최종 결과는 표 1에 나와 있다.
 
 분류 모형의 곡선 아래 영역(AUC)은 검증 집합에서 0.93에 도달했으며(그림 2B), 민감도는 85.38%, 특이성은 82.62%, 정확도는 84.10%였다. 또한 모형의 양의 예측값(PPV)과 음의 예측값(NPV)은 각각 85.02%와 83.03%였다.
 
