@@ -85,7 +85,7 @@ distance function `d`가 주어졌을 때,
 $$
 d : \mathbb{R}^M \times \mathbb{R}^M \to [0,+\infty),
 $$
-prototypical networks는 embedding space에서의 prototype에 대한 distribution을 생성해 내는데, 이 distribution은 distance로 softmax한 query point x의 class를 결정할 때 필요하다.
+prototypical networks는 embedding space에서의 prototype에 대한 distribution을 생성해 내는데, 이 distribution은 distance로 softmax한 query point `x`의 class를 결정할 때 필요하다.
 $$
 p_\phi(y = k|\mathbf{x}) = \frac{\exp(-d(f_\phi(\mathbf{x}),\mathbf{c}_k))}{\sum_{k'} \exp(-d(f_\phi(\mathbf{x}),\mathbf{c}_{k'}))}
 $$
@@ -94,7 +94,7 @@ $$
 
 Negative log-probability 
 $$
-J(ϕ)= −\log p_ϕ(y=k|\mathbb{x})
+J(ϕ)= −\log p_ϕ(y=k|\mathbf{x})
 $$
 를 최소화 하기 위해 SGD를 이용하고, Training episode는 training set에서 랜덤하게 class를 선택하여 만든다. 그리고 남은 것 중 일부를 선택하여 query point를 만든다. 
 
@@ -103,4 +103,17 @@ Algorithm 1에 episode를 training하기 위해  loss J(φ)를 계산하는 수�
 ![Screen Shot 2021-09-13 at 4.01.14 PM](/Users/sua/Library/Application Support/typora-user-images/Screen Shot 2021-09-13 at 4.01.14 PM.png)
 
 ### 3. Prototypical Networks as Mixture Density Estimation
+
+ *Regular Bregman divergences*라고 알려진 distance function에 대해서, prototypical networks algorithm은 support set에 대해 performing mixture density estiation을 적용한다. Regular Bregman divergence `dφ`는 다음과 같이 정의된다.
+$$
+d_φ(\mathbf{z},\mathbf{z}') = φ(\mathbf{z}) - φ(\mathbf{z}') - (\mathbf{z}-\mathbf{z}')^T \nabla φ(\mathbf{z}') \\
+φ : \mbox{ditterentiable(미분가능한), strictly convex function of the Legendre type}
+$$
+Bregman divergences는 squared Euclidean distance ||z−z′||2 와 Mahalanobis distance 또한 포함한다.
+
+Prototype computation은 support set의 하드 클러스터링 측면에서 볼 수 있으며, 클래스당 하나의 클러스터와 각 지원 지점이 해당 클래스 클러스터에 할당된다. Bregman divergences의 경우 할당된 지점까지의 최소 거리를 달성하는 대표적인 군집이 cluster mean이라는 것이 나타났다.
+
+따라서 방정식 (1)의 프로토타입 계산에서는 브레그만 분기가 사용될 때 지원 세트 레이블이 주어진 최적의 군집 대표자를 산출한다.
+
+
 
