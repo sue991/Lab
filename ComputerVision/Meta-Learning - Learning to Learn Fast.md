@@ -64,8 +64,22 @@ Metric-based meta-learning model이 잘 동작하기 위해서는 좋은 kernel 
 
 ### Convolutional Siamese Neural Network
 
+참고 : https://tyami.github.io/deep%20learning/Siamese-neural-networks/
 
+Siamese Neural Network는 샴 쌍둥이에서 착안된 네트워크로 두 네트워크의 구조가 서로 닮아있으며, 더 나아가 weight를 공유하는 네트워크이다.
 
+One-shot learning은 few-shot learning의 극단적인 예시로, 한 장의 데이터만으로 학습을 할 수 있게 만드는 것을 말한다.
+
+Siamese Neural Network는 이러한 one-shot image classificatoin을 하기 위해 사용하는 것이다.
+
+Siamese Neural Network는 두 개의 input data(image 1, image 2)에 대한 아웃풋으로 각 입력에 대한 임베딩 값(Embedding 1, Embedding 2)을 얻는다. 그 다음 L1 norm, L2 norm 등을 이용하여 두 임베딩 사이의 거리를 계산한다. 
+따라서 최종적으로 두 이미지가 같은 class에 있을 확률을 output한다.
+
+학습이 완료된 후, 모든 학습 데이터에 대한 임베딩 값을 뿌렸을 때, 같은 클래스끼리는 모이고 다른 클래스끼리는 멀어지는 결과를 보여준다.
+
+### Matching Networks
+
+적은 양의 support set $S = \{x_i, y_i\}^k_{i=1}$(k-shot classification)을 가지고 classiier $c_S$를 학습시키는 방법이다.
 
 
 
