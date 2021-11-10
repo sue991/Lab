@@ -29,7 +29,7 @@ Optimal parameter는 dataset $\mathcal{D}$ 내에 있는 여러 training batch $
 $$
 \theta^* = \argmax_\theta \mathbb{E}_{(\mathbf{x},y)\in\mathcal{D}}[P_\theta(y|\mathbf{x})] \\
 \theta^* = \argmax_\theta \mathbb{E}_{B\sub\mathcal{D}}[\sum_{(\mathbf{x},y)\in B} P_\theta(y|\mathbf{x})] \qquad ; {\scriptstyle \text{trained with miti-batches}}
-$$ 
+$$
 
 Few-show classification의 목표 : `fast learning`을 위해 추가한 약간의 support set을 갖고 unknown label에 대한 데이터의 prediction error를 줄이는 것
 
@@ -54,7 +54,7 @@ $$
 Metric-Based meta-learning은 nearest neighbors algorithm과 비슷하다.
 label $y$에 대한 predicted probability는 support set sample의 label에 대한 weighted sum과 같다. weight는 $k_\theta$를 통해 구할 수 있는데, 이 값은 두 개의 data sample간의 similarity 를 나타내는 것이다.
 > 어렵다
-$$ 
+$$
 P_\theta(y|\mathbf{x},S) = \sum_{\mathbf{x}_i,y_i\in S} k_\theta(\mathbf{x},\mathbf{x}_i)y_i
 $$
 
@@ -83,6 +83,6 @@ Siamese Neural Network는 두 개의 input data(image 1, image 2)에 대한 아�
 
 
 
---- 
+---
 참고 자료   
 https://talkingaboutme.tistory.com/entry/DL-Meta-Learning-Learning-to-Learn-Fast

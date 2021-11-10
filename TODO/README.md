@@ -23,8 +23,27 @@
 ### TODO LIST
 
 - [x]  KSC2021 논문 쓰기
-
   - [x] 논문 피드백 받은대로 다시 고치기
   - [ ] 논문 제출
 
-  
+---
+
+## 11월 1주차
+
+### TODO LIST
+
+- [x] PV System 논문 같이 수정
+- [x] PV System 매뉴얼 작성
+- [x] Colposcopy 논문 수정 및 제출 
+  - [x] 민경진 교수님께 수정본 메일 제출하기
+- [ ] Colposcopy 모델 하나로 합치기
+
+---
+
+## 11월 2주차
+
+### TODO LIST
+
+- [ ] SDN 모델 구현
+  - [ ] Log 추가 - dataload, train, test, eval
+- [ ] 
