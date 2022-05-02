@@ -2,8 +2,8 @@
 한양대 ERICA 정우환 교수님 LAB 인턴    
 2021년 5월 ~ 2022년 2월
 
-한양대학교 정우환 교수님 DSLAB 석사과정
-2022년 3월 ~
+한양대학교 인공지능융합학과 DSLAB 석사과정
+2022년 3월 ~ ing
 
 ## 연구 수행
 - PV system 관련 Fault Detect model 개발 연구   
